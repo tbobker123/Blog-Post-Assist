@@ -37,6 +37,6 @@ Currently the only restriction is this doesn't run in a sub directory.
 # Issues/suggestions
 Please open an issue on Github if you have any problems or if you have an suggestions
 
-#contact
+# contact
 Website: [flipsnap.net](https://flipsnap.net), [domaingenerator.app](https://domaingenerator.app)
 Email tim@flipsnap.net
