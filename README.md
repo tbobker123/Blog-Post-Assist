@@ -32,7 +32,8 @@ No need for any fancy hosting, just use cpanel nodejs hosting. Most cpanel hosti
 9. Navigate to the domain/subdomin in your browser. You should be able to login and start using the tool. 
 
 # Restrictions
-Currently the only restriction is this doesn't run in a sub directory. 
+ - This doesn't run in a sub directory. 
+ - You cannot run SERP analysis for multiple geo locations. It only works locally. 
 
 # Issues/suggestions
 Please open an issue on Github if you have any problems or if you have an suggestions
