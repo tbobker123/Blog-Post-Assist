@@ -39,7 +39,7 @@ No need for any fancy hosting, just use cpanel nodejs hosting. Most cpanel hosti
 Please open an issue on Github if you have any problems or if you have an suggestions
 
 # Support this project
-The best way to support this project is to either contribute or add our link to your website [domaingenerator.app](https://domaingenerator.app)
+The best way to support this project is to either contribute or add this link [domaingenerator.app](https://domaingenerator.app) to your website to give us a backlink. 
 
 # contact
 Website: [flipsnap.net](https://flipsnap.net), [domaingenerator.app](https://domaingenerator.app)
