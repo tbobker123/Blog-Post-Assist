@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.tiny.cloud/1/3hoje20mzsz3vr1f5dsu7mbm3jivkrwpmt7cf2keu17tpcdk/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+  </head>
+  <body>
+
+    <div class="container d-flex justify-content-center">
+      <div class="col-10 align-items-center d-flex justify-content-center">
+        <section class="w-100 p-4 d-flex justify-content-center pb-4">
+          <form style="width: 22rem;" method="post" action="/login">
+
+        <div class="h1">Dashboard Login</div>
+            <!-- Email input -->
+            <div class="form-outline mb-4">
+              <input type="text" id="form2Example1" name="username" class="form-control">
+              <label class="form-label" for="form2Example1" style="margin-left: 0px;">Username</label>
+            <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 88.8px;"></div><div class="form-notch-trailing"></div></div></div>
+    
+            <!-- Password input -->
+            <div class="form-outline mb-4">
+              <input type="password" id="form2Example2" name="password" class="form-control">
+              <label class="form-label" for="form2Example2" style="margin-left: 0px;">Password</label>
+            <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 64px;"></div><div class="form-notch-trailing"></div></div></div>
+    
+            <button type="submit" class="btn btn-primary btn-block mb-4 w-100">Sign in</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
