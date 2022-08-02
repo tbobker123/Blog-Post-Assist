@@ -3,6 +3,11 @@
 Dont waste money on these AI content generator tools, they just use OpenAI anyway which is so much cheaper in comparison. 
 This tool you can self host and start to generate content just like those $50 a month tools. 
 
+<img width="1388" alt="Screenshot 2022-08-02 at 18 32 20" src="https://user-images.githubusercontent.com/110484739/182437762-055454b0-c7bf-4ffc-b3a1-7eb65db67ecf.png">
+
+<img width="1402" alt="Screenshot 2022-08-02 at 18 32 37" src="https://user-images.githubusercontent.com/110484739/182437774-3fc95b7f-42f0-436e-b3d4-da9e97051988.png">
+
+
 # Features
 Here are some of the great features that have been built into this tool
 
