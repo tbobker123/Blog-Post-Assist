@@ -18,4 +18,25 @@ No need for any fancy hosting, just use cpanel nodejs hosting. Most cpanel hosti
 ## Requirements
  - OpenAI account. You can use the free $17 trial and then upgrade to a pay as you go.
  - Web hosting. A2hosting shared hosting is recommended and has been tested. 
- 
+
+# Installation
+
+1. Download the files from the Github repository
+2. If you want to install this on a sub domain, create a sub domain now
+3. Click on the "Setup Node.js App" section in Cpanel
+4. Click the "create new application" button to setup a new app
+5. Make sure the application root is the same as for your domain/sub domain and select the domain you want to use
+6. Add the environment variables: USERNAME (dashboard username), PASSWORD (dashboard password), KEY (OpenAI API key)
+7. Upload all the files to the document root
+8. Head back to your Node.js App and click the "Run NPM Install". This installs all the packages
+9. Navigate to the domain/subdomin in your browser. You should be able to login and start using the tool. 
+
+# Restrictions
+Currently the only restriction is this doesn't run in a sub directory. 
+
+# Issues/suggestions
+Please open an issue on Github if you have any problems or if you have an suggestions
+
+#contact
+Website: [flipsnap.net](https://flipsnap.net), [domaingenerator.app](https://domaingenerator.app)
+Email tim@flipsnap.net
