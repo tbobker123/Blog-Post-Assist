@@ -78,6 +78,6 @@ app.post('/generate', async (req, res) => {
 });
 
 
-server.listen(42000);
+server.listen();
 
 module.exports = app;
