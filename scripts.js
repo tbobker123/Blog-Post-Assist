@@ -44,7 +44,7 @@ $("#login-submit").on("click", function(){
     .then((res) => { return res.text(); })
     .then((txt) => {
       if(txt == "true"){
-        location.href = "/dashboard";
+        window.location.href = "/dashboard";
       } else {
         $("#warning").text(txt);
       }

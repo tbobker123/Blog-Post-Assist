@@ -31,7 +31,7 @@ No need for any fancy hosting, just use cpanel nodejs hosting. Most cpanel hosti
 3. Click on the "Setup Node.js App" section in Cpanel
 4. Click the "create new application" button to setup a new app
 5. Make sure the application root is the same as for your domain/sub domain and select the domain you want to use
-6. Add the environment variables: USERNAME (dashboard username), PASSWORD (dashboard password), KEY (OpenAI API key)
+6. Add the environment variables: USERNAME (dashboard username), PASSWORD (dashboard password), KEY ([OpenAI](https://openai.com/) API key)
 7. Upload all the files to the document root
 8. Head back to your Node.js App and click the "Run NPM Install". This installs all the packages
 9. Navigate to the domain/subdomin in your browser. You should be able to login and start using the tool. 
