@@ -12,14 +12,18 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
-app.use(session({secret:'Keep it secret'
-,name:'uniqueSessionID'
-,saveUninitialized:false}))
+app.use(session({
+  secret:'Keep it secret',
+  name:'uniqueSessionID',
+  saveUninitialized:false
+}))
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname,'static')));
 
 const io = new Server(server);
+
+const PORT = process.env.PORT || 3000;
 
 app.get('/styles', (req, res) => {
   res.sendFile(__dirname + '/styles.css');
@@ -41,22 +45,37 @@ app.get('/dashboard',(req,res)=>{
   if(req.session.loggedIn) {
     res.sendFile(__dirname + '/app.html');
   } else {
-    res.redirect('/');
+    res.redirect('/?loggedin=false');
   }
 });
 
-app.post('/login',bodyParser.urlencoded(),(req,res,next)=>{
-  if(req.body.username==process.env.USERNAME && req.body.password==process.env.PASSWORD){
-    res.locals.username = req.body.username
-    next();
+
+app.post('/login', function(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  console.log(req.body)
+
+  if(username && password) {
+
+    if(username == process.env.USERNAME && password == process.env.PASSWORD) {
+      req.session.loggedIn = true;
+      req.session.username = username;
+      //res.redirect('/dashboard');
+      res.status(200).send("true");
+
+    } else {
+      //io.sockets.emit("warning", "Incorrect username and/or password supplied");
+      res.status(200).send("Incorrect username and/or password supplied");
+    }
+
+    res.end();
   } else {
-    res.redirect('/');
+    //io.sockets.emit("warning", "Enter a username and password.");
+    res.status(200).send("Enter a username and password.");
+		res.end();
   }
-} ,(req,res)=> {
-  req.session.loggedIn = true
-  req.session.username = res.locals.username
-  res.redirect('/dashboard');
-});
+})
 
 app.get('/logout',(req,res)=>{
   req.session.destroy((err)=>{})
@@ -78,6 +97,6 @@ app.post('/generate', async (req, res) => {
 });
 
 
-server.listen();
+server.listen(PORT);
 
 module.exports = app;

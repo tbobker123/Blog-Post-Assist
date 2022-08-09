@@ -16,25 +16,29 @@
     <div class="container d-flex justify-content-center">
       <div class="col-10 align-items-center d-flex justify-content-center">
         <section class="w-100 p-4 d-flex justify-content-center pb-4">
-          <form style="width: 22rem;" method="post" action="/login">
+          <div style="width: 22rem;">
 
-        <div class="h1">Dashboard Login</div>
+            <div class="h1 text-center">Dashboard</div>
             <!-- Email input -->
             <div class="form-outline mb-4">
-              <input type="text" id="form2Example1" name="username" class="form-control">
+              <input type="text" id="username" name="username" class="form-control">
               <label class="form-label" for="form2Example1" style="margin-left: 0px;">Username</label>
             <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 88.8px;"></div><div class="form-notch-trailing"></div></div></div>
     
             <!-- Password input -->
             <div class="form-outline mb-4">
-              <input type="password" id="form2Example2" name="password" class="form-control">
+              <input type="password" id="password" name="password" class="form-control">
               <label class="form-label" for="form2Example2" style="margin-left: 0px;">Password</label>
             <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 64px;"></div><div class="form-notch-trailing"></div></div></div>
     
-            <button type="submit" class="btn btn-primary btn-block mb-4 w-100">Sign in</button>
-          </form>
+            <button type="button" class="btn btn-primary btn-block mb-4 w-100" id="login-submit">Sign in</button>
+          
+            <div class="warning text-warning" id="warning"></div>
+          </div>
         </section>
+
       </div>
     </div>
+    <script src="/scripts"></script>
   </body>
 </html>

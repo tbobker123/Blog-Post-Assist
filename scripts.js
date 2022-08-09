@@ -26,7 +26,42 @@ $("#generatebtn").on('click', (e) => {
 
 })
 
+$("#login-submit").on("click", function(){
+    
+    const login_username = $("#username").val();
+    const login_password = $("#password").val();
+
+    const data = JSON.stringify({
+        username: login_username, 
+        password: login_password
+    });
+
+    fetch("/login", { 
+        method:"POST", 
+        headers: {"Content-Type": "application/json"},
+        body: data
+    })
+    .then((res) => { return res.text(); })
+    .then((txt) => {
+      if(txt == "true"){
+        location.href = "/dashboard";
+      } else {
+        $("#warning").text(txt);
+      }
+    })
+    .catch((err) => {
+      alert("Server error - " + err.message);
+      console.error(err);
+    });
+
+    return false;
+});
+
 const socket = io();
+
+socket.on("warning", function(message){
+    $("#warning").text(message);
+});
 
 socket.on("generated", function(message) { 
     const blog = message.split(/\r?\n/);
