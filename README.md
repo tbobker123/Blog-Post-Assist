@@ -1,51 +1,41 @@
-# blog-post-creator
+# CodeIgniter 4 Application Starter
 
-Dont waste money on these AI content generator tools, they just use OpenAI anyway which is so much cheaper in comparison. 
-This tool you can self host and start to generate content just like those $50 a month tools. 
+## What is CodeIgniter?
 
-<img width="1388" alt="Screenshot 2022-08-02 at 18 32 20" src="https://user-images.githubusercontent.com/110484739/182437762-055454b0-c7bf-4ffc-b3a1-7eb65db67ecf.png">
+CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
+More information can be found at the [official site](http://codeigniter.com).
 
-<img width="1402" alt="Screenshot 2022-08-02 at 18 32 37" src="https://user-images.githubusercontent.com/110484739/182437774-3fc95b7f-42f0-436e-b3d4-da9e97051988.png">
+This repository holds a composer-installable app starter.
+It has been built from the
+[development repository](https://github.com/codeigniter4/CodeIgniter4).
 
+More information about the plans for version 4 can be found in [the announcement](http://forum.codeigniter.com/thread-62615.html) on the forums.
 
-# Features
-Here are some of the great features that have been built into this tool
+The user guide corresponding to this version of the framework can be found
+[here](https://codeigniter4.github.io/userguide/).
 
-## Search engine page analysis
-See the top search results for a keyword and analyse the word count, post outlines and meta description. The tool also calculates the recommended word count for a blog post targeting the keyword
+## Installation & updates
 
-## Generate content
-Using OpenAI, you can simple write commands into the input box that will query the OpenAI platform and send back results. For example, do you need to generate some blog title ideas, simple input "Generate blog topics on building backlinks for your website" and the tool will return ideas. 
+Clone the project and run ```composer install``` to install the composer packages
+To run the project locally, simply run ```php spark serve```.
 
-## Self host the tool
-No need for any fancy hosting, just use cpanel nodejs hosting. Most cpanel hosting includes Nodejs, just upload the files, add your environment variables and away you go. 
+## Setup
 
-# Requirements
- - OpenAI account. You can use the free $17 trial and then upgrade to a pay as you go.
- - Web hosting. A2hosting shared hosting is recommended and has been tested. 
+Copy `.env_example` to `.env` and update the variables. Add your OpenAI key and set a username and password for the dashboard.
+and any database settings.
 
-# Installation
+## Server Requirements
 
-1. Download the files from the Github repository
-2. If you want to install this on a sub domain, create a sub domain now
-3. Click on the "Setup Node.js App" section in Cpanel
-4. Click the "create new application" button to setup a new app
-5. Make sure the application root is the same as for your domain/sub domain and select the domain you want to use
-6. Add the environment variables: USERNAME (dashboard username), PASSWORD (dashboard password), KEY ([OpenAI](https://openai.com/) API key)
-7. Upload all the files to the document root
-8. Head back to your Node.js App and click the "Run NPM Install". This installs all the packages
-9. Navigate to the domain/subdomin in your browser. You should be able to login and start using the tool. 
+PHP version 7.4 or higher is required, with the following extensions installed:
 
-# Restrictions
- - This doesn't run in a sub directory. 
- - You cannot run SERP analysis for multiple geo locations. It only works locally. 
+- [intl](http://php.net/manual/en/intl.requirements.php)
+- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
 
-# Issues/suggestions
-Please open an issue on Github if you have any problems or if you have an suggestions
+Additionally, make sure that the following extensions are enabled in your PHP:
 
-# Support this project
-The best way to support this project is to either contribute or add this link [domaingenerator.app](https://domaingenerator.app) to your website to give us a backlink. 
+- json (enabled by default - don't turn it off)
+- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php)
+- xml (enabled by default - don't turn it off)
 
-# contact
-Website: [flipsnap.net](https://flipsnap.net), [domaingenerator.app](https://domaingenerator.app)
-Email tim@flipsnap.net
+A2hosting runs this project perfectly. 
