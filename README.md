@@ -1,4 +1,4 @@
-# CodeIgniter 4 Application Starter
+# Blog Post Creator - CodeIgniter 4 Application Starter
 
 ## What is CodeIgniter?
 
