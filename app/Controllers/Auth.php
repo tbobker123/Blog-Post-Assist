@@ -13,7 +13,11 @@ class Auth extends BaseController
 
     public function index()
     {
-        return view('login');
+        if(session()->has('loggedInUser')){
+            return redirect()->to('/dashboard');
+        } else {
+            return view('login');
+        }
     }
 
     public function login()

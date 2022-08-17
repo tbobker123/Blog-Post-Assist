@@ -13,17 +13,26 @@
   </head>
   <body>
     <div class="container">
+
+      <div class="row mb-4 mt-3">
+        <div class="col p-2 text-center">
+            <span class="h1" style="font-family: 'Kaushan Script', cursive;">
+              <a href="/">Blog Post Creator</a>
+            </span>
+        </div>
+      </div>
+
       <div class="row">
         <div class="col-md-4 offset-4 mt-3">
 
-          <h4>Sign In</h4>
+          <!--<h4>Sign In</h4>
+          <hr>-->
           
           <?php if (session()->getFlashdata('failed') !== NULL) : ?>
           <div class="alert alert-danger" role="alert">
               <?php echo session()->getFlashdata('failed'); ?>
           </div>
       <?php endif; ?>
-          <hr>
 
           <form action="/auth/login" method="post" class="form">
             <?=csrf_field();?>
@@ -38,7 +47,7 @@
             </div>
 
             <div class="form-group mb-3">
-              <input type="submit" value="Login" class="btn btn-info">
+              <input type="submit" value="Login" class="btn btn-info w-100">
             </div>
 
           </form>

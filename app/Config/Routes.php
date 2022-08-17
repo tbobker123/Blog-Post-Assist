@@ -44,8 +44,9 @@ $routes->post('/auth/login', 'Auth::Login');
 
 $routes->group('', ['filter' => 'AuthCheck'], function($routes){
     $routes->get('/dashboard', 'Dashboard::Index');
+    $routes->get('/configuration', 'Configuration::Index');
+    $routes->post('/configuration/update', 'Configuration::Update');
 });
-
 
 $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes){
 

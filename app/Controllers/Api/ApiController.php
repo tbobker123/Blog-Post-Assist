@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use CodeIgniter\RESTful\ResourceController;
 use Orhanerday\OpenAi\OpenAi;
 use voku\helper\HtmlDomParser;
+use App\Models\Settings;
 
 class ApiController extends ResourceController
 {
@@ -18,7 +19,8 @@ class ApiController extends ResourceController
      */
 
      public function __construct(){
-
+        $this->settings = model('Settings');
+        $this->query = $this->settings->find(0);
      }
 
     public function index()
@@ -40,7 +42,7 @@ class ApiController extends ResourceController
         try{
             $complete = json_decode($open_ai->complete([
                 'engine' => 'text-davinci-002',
-                'prompt' => "Create a detailed, interesting and informative blog post outline about $prompt",
+                'prompt' => $this->query['openAI_outline'] . $prompt,
                 'temperature' => 0.7,
                 'max_tokens' => 4000,
                 'frequency_penalty' => 0,
@@ -73,7 +75,7 @@ class ApiController extends ResourceController
         try{
             $complete = json_decode($open_ai->complete([
                 'engine' => 'text-davinci-002',
-                'prompt' => "Create 15 blog topics or blog post titles about $prompt",
+                'prompt' => $this->query['openAI_topic'] . $prompt,
                 'temperature' => 0.83,
                 'max_tokens' => 4000,
                 'frequency_penalty' => 0,
@@ -108,7 +110,7 @@ class ApiController extends ResourceController
         try{
             $complete = json_decode($open_ai->complete([
                 'engine' => 'text-davinci-002',
-                'prompt' => "Expand the blog section in to a detailed professional , witty and clever explanation:  $prompt",
+                'prompt' => $this->query['openAI_section'] . $prompt,
                 'temperature' => 0.53,
                 'max_tokens' => 4000,
                 'frequency_penalty' => 0,
@@ -128,17 +130,35 @@ class ApiController extends ResourceController
         }
     }
 
-    public function searchResults(){
+    public function searchResults()
+    {
+        $serp_results = $this->query['serp'];
 
         $query = urlencode($this->request->getVar("query"));
 
-        $query_url = file_get_contents("https://serpapi.com/search.json?engine=google&q=$query&api_key=344d53341bdd80e5bb74bb1b41da3cb2f2b93ff78d90a0fca6e1345e77b0c12d&num=25&gl=uk");
+        $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=344d53341bdd80e5bb74bb1b41da3cb2f2b93ff78d90a0fca6e1345e77b0c12d&num=$serp_results&gl=uk";
+       
         
-        $process = $this->processSearchResults($query_url);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $headers = [
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'User-Agent:  Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+        ];
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        // $output contains the output string
+        $output = curl_exec($ch);
+
+        // close curl resource to free up system resources
+        curl_close($ch);        
+        
+        $process = $this->processSearchResults($output);
         
         return  $this->response->setJSON([
-            "results" => $process,
-            "wordcount" => ($this->total_word_count/$this->total_search_results) * 1.3
+            "results" => $process['searchResults'],
+            "wordcount" => ($this->total_word_count/$this->total_search_results) * 1.3,
+            "relatedquestions" => $process['relatedQuestions']
         ]);
     }
 
@@ -148,6 +168,7 @@ class ApiController extends ResourceController
         $searchResults = $results->organic_results;
 
         foreach($searchResults as $item){
+
             $wordCountAndHeadings = $this->getWordCountAndHeading($item->link);
             $this->total_search_results = $this->total_search_results + 1;
 
@@ -163,7 +184,10 @@ class ApiController extends ResourceController
 
         }
 
-        return $searchResults;
+        return [
+            "searchResults" => $searchResults,
+            "relatedQuestions" => (property_exists($results, 'related_questions')) ? $results->related_questions : ["No related questions"]
+        ];
  
     }
 

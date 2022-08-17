@@ -28,7 +28,8 @@ function openCity(evt, cityName)
         tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
     document.getElementById(cityName).style.display = "block";
-    evt.currentTarget.className += " active";
+    evt.className += " active";
+    //console.log(evt);
 }
 
 tinymce.init({
@@ -100,7 +101,10 @@ $(document).ready(function() {
     });
 
     $("#searchbtn").on('click', (e) => {
+
         $("#results").empty();
+        $("#recommended-word-length").empty();
+        $("#related-questions").empty();
         $("#loading").html("loading...");
     
         const fetchPromise = fetch("/api/search", {
@@ -112,9 +116,11 @@ $(document).ready(function() {
             body: JSON.stringify({query: $("#searchterm").val()})
         });
         fetchPromise.then(response => {
+            console.log(response);
             return response.json();
         }).then(data => {
             parseResults(data);
+            $("#loading").html("");
         });
         
     });
@@ -143,10 +149,12 @@ $(document).ready(function() {
         });
     });
     
-    function parseResults(result){
+    function parseResults(result)
+    {
+
         console.log(result);
         const results = result;
-        $("#recommended-word-length").html(`<h2>Recommended Post length ${Math.round(results.wordcount)}</h2>`);
+        $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
         for(let c=0;c<results.results.length;c++){
             let item = results.results[c];
             $("#results").append(`
@@ -162,8 +170,19 @@ $(document).ready(function() {
                     </div>
                 </td>
             </tr>
-            `)
-        }  
+            `);
+        }
+
+        for(let d=0;d<results.relatedquestions.length;d++){
+            let question = results.relatedquestions[d];
+            $("#related-questions").append(`
+                <tr>
+                    <th scope="row">${question.question}</th>
+                    <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
+                    <td>${question.title}</td>
+                </tr>
+            `);
+            }  
     }
     
     $("#login-submit").on("click", function(){
@@ -196,5 +215,7 @@ $(document).ready(function() {
     
         return false;
     });
+
+    openCity(document.getElementsByClassName("firstload")[0], 'serp-analysis');
 
   });
