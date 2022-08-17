@@ -128,3 +128,7 @@ nb-configuration.xml
 /.phpunit.*.cache
 
 /.php-cs-fixer.php
+
+
+app/Database/Migrations
+app/Database/Seeds

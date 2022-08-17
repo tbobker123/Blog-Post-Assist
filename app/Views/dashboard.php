@@ -19,55 +19,78 @@
 
     <div class="container">
 
-        <div class="row mb-4 mt-3">
+    <div class="row mb-4 mt-3">
             <div class="col p-2">
-                <span class="h1" style="font-family: 'Kaushan Script', cursive;">Blog Post Creator</span>
+                <span class="h1" style="font-family: 'Kaushan Script', cursive;">
+                  <a href="/">Blog Post Creator</a>
+                </span>
                 <span class="float-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
+                <span class="float-end ms-3 me-3"><a href="/configuration">Settings</a></span>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col">
+        <div class="row bg-light p-3 mb-5">
+
+            <div class="col-12">
+
                 <div class="tab">
-                    <button class="tablinks" onclick="openCity(event, 'serp-analysis')">SERP Analysis</button>
-                    <button class="tablinks" onclick="openCity(event, 'generate-content')">Generate Content</button>
-                    <button class="tablinks" onclick="openCity(event, 'editor')">Content Editor</button>
+                    <button class="tablinks firstload" onclick="openCity(this, 'serp-analysis')">SERP Analysis</button>
+                    <button class="tablinks" onclick="openCity(this, 'generate-content')">Generate Content</button>
+                    <button class="tablinks" onclick="openCity(this, 'editor')">Content Editor</button>
                   </div>
             </div>
         </div>
 
         <div class="row">
+
             <div id="serp-analysis" class="col-12 tabcontent" style="display: block">
+
                 <div style="min-height:900px" class="mt-2">
 
-                <!--<div class="form-group">
-                    <input type="text" class="form-control w-75 d-inline" id="searchterm">
-                    <input id="searchbtn" type="button" class="btn btn-primary" value="Search">
-                </div>-->
+                <div id="recommended-word-length" class="alert alert-success"></div>
 
+                <div class="col-12 mt-3">
                 <form action="" class="">
                     <div class="input-group mb-3">
                         <input type="text" class="form-control form-control-lg" placeholder="Search Here" id="searchterm">
                         <button type="button" id="searchbtn" class="input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>
                     </div>
                 </form>
+            </div>
 
-                <div id="recommended-word-length"></div>
+                <div class="mb-5">
+                    <h3>Related Questions</h3>
 
                     <table class="table table-light mt-3">
                         <thead>
-                          <tr>
-                            <th scope="col">Title</th>
+                        <tr>
+                            <th scope="col">Question</th>
                             <th scope="col">Domain</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Word Count</th>
-                            <th scope="col">Headings</th>
-                          </tr>
+                            <th scope="col">Title</th>
+                        </tr>
                         </thead>
-                        <tbody id="results"></tbody>
-                    </table>
+                        <tbody id="related-questions"></tbody>
+                    </table>  
+                </div>
+                
+                <div class="mb-5 border-top pt-5">
+                    <h3>Search Results</h3>
 
-                    <div id="loading"></div>
+                        <table class="table table-light mt-3">
+                            <thead>
+                            <tr>
+                                <th scope="col">Title</th>
+                                <th scope="col">Domain</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Word Count</th>
+                                <th scope="col">Headings</th>
+                            </tr>
+                            </thead>
+                            <tbody id="results"></tbody>
+                        </table>  
+                </div>
+
+                <div id="loading"></div>
 
                 </div>
             </div>
