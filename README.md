@@ -2,7 +2,7 @@
 
 ## What is Blog Post Creator?
 
-Blog post creator is script built using Codeigniter4 PHP framework to help in the creation of blog posts.
+Blog post creator is a script built using Codeigniter4 PHP framework to help in the creation of blog posts.
 AI content creation platforms are extremely popular but can also be expensive. 
 
 This script should get you up and running with a self hosted platform that utilises [SerpAPI](https://serpapi.com) and [OpenAI](https://openai.com) to generate blog posts. 
