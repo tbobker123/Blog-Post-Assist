@@ -82,7 +82,7 @@
                                 <th scope="col">Title</th>
                                 <th scope="col">Domain</th>
                                 <th scope="col">Description</th>
-                                <th scope="col">Word Count</th>
+                                <th scope="col">Words</th>
                                 <th scope="col">Headings</th>
                             </tr>
                             </thead>
