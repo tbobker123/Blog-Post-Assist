@@ -14,7 +14,12 @@ class Settings extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
+    protected $allowedFields    = [
+        'openAI_section',
+        'openAI_outline',
+        'openAI_topic',
+        'serp'
+    ];
 
     // Dates
     protected $useTimestamps = false;
@@ -39,15 +44,5 @@ class Settings extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-
-    protected function initialize()
-    {
-        $this->allowedFields = [
-            'openAI_section',
-            'openAI_outline',
-            'openAI_topic',
-            'serp'
-        ];
-    }
 
 }

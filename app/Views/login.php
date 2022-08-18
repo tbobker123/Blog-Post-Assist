@@ -23,7 +23,7 @@
       </div>
 
       <div class="row">
-        <div class="col-md-4 offset-4 mt-3">
+        <div class="col-md-4 offset-md-4 mt-3">
 
           <!--<h4>Sign In</h4>
           <hr>-->
