@@ -136,7 +136,9 @@ class ApiController extends ResourceController
 
         $query = urlencode($this->request->getVar("query"));
 
-        $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=344d53341bdd80e5bb74bb1b41da3cb2f2b93ff78d90a0fca6e1345e77b0c12d&num=$serp_results&gl=uk";
+        $serpapi_key = getenv("SERPAPI");
+
+        $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=$serpapi_key&num=$serp_results&gl=uk";
        
         
         $ch = curl_init();
