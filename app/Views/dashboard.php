@@ -21,17 +21,17 @@
 
     <div class="row mb-4 mt-3">
             <div class="col p-2">
-                <span class="h1" style="font-family: 'Kaushan Script', cursive;">
+                <span class="h1 d-block text-xs-center" style="font-family: 'Kaushan Script', cursive;">
                   <a href="/">Blog Post Creator</a>
                 </span>
-                <span class="float-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
-                <span class="float-end ms-3 me-3"><a href="/configuration">Settings</a></span>
+                <span class="float-md-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
+                <span class="float-md-end ms-3 me-3"><a href="/configuration">Settings</a></span>
             </div>
         </div>
 
-        <div class="row bg-light p-3 mb-5">
+        <div class="row bg-light p-3">
 
-            <div class="col-12">
+            <div class="col-12 m-0 p-0">
 
                 <div class="tab">
                     <button class="tablinks firstload" onclick="openCity(this, 'serp-analysis')">SERP Analysis</button>
@@ -148,7 +148,7 @@
 
         <div class="row">
             <div class="editor p-3 col-12 tabcontent" id="editor">
-                <div class="float-end">
+                <div class="float-md-end">
                     <button class="btn btn-success" onclick="mySave()">Save</button>
                     <button onclick="javascript: clearSaved()" type="button" class="btn btn-danger">Delete</button>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Export</button>
