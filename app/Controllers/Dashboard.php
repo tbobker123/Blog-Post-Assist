@@ -8,7 +8,8 @@ class Dashboard extends BaseController
 {
     public function index()
     {
-        return view('dashboard');
+        $data['tinymce'] = getenv("TINYMCE");
+        return view('dashboard', $data);
     }
 }
 
