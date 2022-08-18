@@ -11,7 +11,7 @@ SerpAPI is used to fetch and analyse Google search results and estimate blog pos
 
 OpenAI is used to generate content using their AI content generation tool. This costs per query but is very cheap. You'll find you might only spend less than $10 a month and generate 1000s of words. Much cheaper than commercial platforms. 
 
-There is also a content editor built into this script so you can draft your blog posts. It auto saves the what you've written to your browser storage. You'll need to sign up to tiny.cloud for an API key. 
+There is also a content editor built into this script so you can draft your blog posts. It auto saves what you've written to your browser storage so you can come back to the draft at a later date. You'll need to sign up to tiny.cloud for an API key. 
 
 ## Installation & updates
 
@@ -45,3 +45,18 @@ Additionally, make sure that the following extensions are enabled in your PHP:
 - xml (enabled by default - don't turn it off)
 
 A2hosting shared hosting runs this project perfectly. 
+
+## todo
+* Save search results to the SQLite database
+* Ability to create a post outline from headings in results
+* Save/load multiple blog post drafts to SQLite
+* Function to send draft directly to Wordpress via email
+
+## Support
+Open an issue on the Github or email me at tim@flipsnap.net.
+
+## Contributions
+Feel free to submit PRs or Fork the project to do something else. 
+
+## If you want to help me
+I'd really appreciate a link on your website/blog back to my other generator site [domaingenerator.app](https://domaingenerator.app)
