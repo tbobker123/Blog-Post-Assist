@@ -11,9 +11,11 @@ SerpAPI is used to fetch and analyse Google search results and estimate blog pos
 
 OpenAI is used to generate content using their AI content generation tool. This costs per query but is very cheap. You'll find you might only spend less than $10 a month and generate 1000s of words. Much cheaper than commercial platforms. 
 
+There is also a content editor built into this script so you can draft your blog posts. It auto saves the what you've written to your browser storage. You'll need to sign up to tiny.cloud for an API key. 
+
 ## Installation & updates
 
-First you need to sign up for the API services this script uses: [SerpAPI](https://serpapi.com) and [OpenAI](https://openai.com).
+First you need to sign up for the API services this script uses: [SerpAPI](https://serpapi.com), [OpenAI](https://openai.com) and [TinyMCE](https://tiny.cloud).
 
 Clone the project ```git clone https://github.com/domaingenerator/blog-post-creator.git``` or simply download the Zip file from [Github](https://github.com/domaingenerator/blog-post-creator/). 
 
