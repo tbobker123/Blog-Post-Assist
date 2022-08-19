@@ -61,6 +61,7 @@ Additionally, make sure that the following extensions are enabled in your PHP:
 * Save/load multiple blog post drafts to SQLite
 * Function to send draft directly to Wordpress via email
 * Make the design more mobile friendly
+* Use a JS framework like ReactJS or Vuejs for frontend
 
 ## Support
 Open an issue on the Github or email me at tim@flipsnap.net.
