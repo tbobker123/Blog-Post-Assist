@@ -78,8 +78,6 @@ user_guide_src/build/*
 #-------------------------
 tests/coverage*
 
-# Don't save phpunit under version control.
-phpunit
 
 
 #-------------------------
