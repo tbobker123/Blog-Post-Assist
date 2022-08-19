@@ -1,4 +1,9 @@
 # Blog Post Creator - Application Starter
+<img width="1100" alt="Screenshot 2022-08-18 at 16 35 25" src="https://user-images.githubusercontent.com/110484739/185435817-7d751319-f26d-45f4-af0d-7560999a20f4.png">
+<img width="1390" alt="Screenshot 2022-08-18 at 16 34 01" src="https://user-images.githubusercontent.com/110484739/185435843-1646a04c-4c6c-4fd7-b2e2-1082a04ef6b3.png">
+
+<img width="1095" alt="Screenshot 2022-08-18 at 16 34 18" src="https://user-images.githubusercontent.com/110484739/185435859-84929c37-7c45-47eb-a636-faf045fa78b9.png">
+
 
 ## What is Blog Post Creator?
 
