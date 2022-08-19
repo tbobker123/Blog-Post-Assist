@@ -28,11 +28,11 @@ First you need to sign up for the API services this script uses: [SerpAPI](https
 
 Clone the project ```git clone https://github.com/domaingenerator/blog-post-creator.git``` or simply download the Zip file from [Github](https://github.com/domaingenerator/blog-post-creator/). 
 
-1. using the terminal, navigate into the scripts folder and run ```composer install```. This installs all the necessary packages. 
+All packages have been installed via composer and the vendor directory is already uploaded to this repository so there is no need to run ```composer install```.
 
-2. Rename the ```.env_example``` file to ```.env``` and open it up in your favourite editor and scroll to the end of the file. Update the variables with your API keys. 
+1. Rename the ```.env_example``` file to ```.env``` and open it up in your favourite editor and scroll to the end of the file. Update the variables with your API keys. 
 
-3. Next open file ```app > config > App.php ``` and update the ```public $baseURL``` variable to reflect either the domain you will host the script or ```localhost:port-number```. 
+2. Next open file ```app > config > App.php ``` and update the ```public $baseURL``` variable to reflect either the domain you will host the script or ```localhost:port-number```. If you are running ```php spark serve``` locally the port is usually ```http://localhost:8080```
 
 If you are self hosting this with a domain, make sure you set the document root to the ```public``` folder of this script.
 
