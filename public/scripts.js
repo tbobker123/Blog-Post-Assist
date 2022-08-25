@@ -16,6 +16,18 @@ function arrayToLists(arr){
     } 
 }
 
+function loadGoogleCountries(){
+    fetch(`/google-countries.json`)
+    .then((response) => response.json())
+    .then((data) => {
+        $("#search-locations-select").empty();
+        data.map(item => {
+            $("#search-locations-select").append(`<option value="${item.country_code}">${item.country_name}</option>`);
+        });
+    })
+}
+
+
 function openCity(evt, cityName) 
 {
     var i, tabcontent, tablinks;
@@ -70,9 +82,6 @@ function clearSaved(){
 
 $(document).ready(function() {
 
-    // Initialize the tooltip.
-    $('#copy-button').tooltip();
-  
     // When the copy button is clicked, select the value of the text box, attempt
     // to execute the copy command, and trigger event to update tooltip message
     // to indicate whether the text was successfully copied.
@@ -100,30 +109,6 @@ $(document).ready(function() {
           .tooltip('fixTitle');
     });
 
-    $("#searchbtn").on('click', (e) => {
-
-        $("#results").empty();
-        $("#recommended-word-length").empty();
-        $("#related-questions").empty();
-        $("#loading").html("loading...");
-    
-        const fetchPromise = fetch("/api/search", {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({query: $("#searchterm").val()})
-        });
-        fetchPromise.then(response => {
-            console.log(response);
-            return response.json();
-        }).then(data => {
-            parseResults(data);
-            $("#loading").html("");
-        });
-        
-    });
     
     $(".openai-button").click(function() {
         
@@ -148,18 +133,74 @@ $(document).ready(function() {
             $(resultArea).html(data.result);
         });
     });
-    
-    function parseResults(result)
-    {
 
+    /**
+     * Fetch location data from JSON file
+     */
+     /*let typingTimer;
+      $("#search-locations").keyup(function(){
+        clearTimeout(typingTimer);
+        if ($('#search-locations').val()) {
+            typingTimer = setTimeout(function(){
+                const search_value = $('#search-locations').val().replace(" ", "+");
+                fetch(`http://localhost:8080/api/locations?q=${search_value}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    $("#search-locations-select").empty();
+                    data.map(item => {
+                        $("#search-locations-select").append(`<option value="${item.id}">${item.canonical_name}</option>`);
+                    });
+                });
+            }, 1000);
+        }
+    });*/
+
+    loadGoogleCountries();
+    
+    
+
+    $("#searchbtn").on('click', (e) => {
+
+        $("#results").empty();
+        $("#recommended-word-length").empty();
+        $("#related-questions").empty();
+        $("#loading").html("loading...");
+
+        const postData = {query: $("#searchterm").val(), location: $("#search-locations-select").val()};    
+        const fetchPromise = fetch("/api/search", {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(postData)
+        });
+        fetchPromise.then(response => {
+            //console.log(response);
+            return response.json();
+        }).then(data => {
+            parseResults(data);
+            $("#loading").html("");
+        });
+        
+    });
+
+    $("#save-search").on("click", function(e){
+
+    })
+    
+    function parseResults(result){
+        localStorage.setItem("serpresults", JSON.stringify(result));
         console.log(result);
+
         const results = result;
         $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
         for(let c=0;c<results.results.length;c++){
             let item = results.results[c];
             $("#results").append(`
             <tr>
-                <th scope="row">${item.title}</th>
+                <td scope="row">${item.title}</td>
                 <td><a href="${item.link}" target="_blank"> ${url_domain(item.link)}</a></td>
                 <td>${item.snippet}</td>
                 <td>${item.wordcount}</td>
@@ -173,16 +214,25 @@ $(document).ready(function() {
             `);
         }
 
-        for(let d=0;d<results.relatedquestions.length;d++){
-            let question = results.relatedquestions[d];
+        if(results.relatedquestions[0] == "No related questions"){
             $("#related-questions").append(`
-                <tr>
-                    <th scope="row">${question.question}</th>
-                    <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
-                    <td>${question.title}</td>
-                </tr>
-            `);
-            }  
+            <tr>
+                <td colspan="3">No related questions</td>
+            </tr>
+        `);
+        } else {
+            for(let d=0;d<results.relatedquestions.length;d++){
+                let question = results.relatedquestions[d];
+                $("#related-questions").append(`
+                    <tr>
+                        <td scope="row">${question.question}</td>
+                        <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
+                        <td>${question.title}</td>
+                    </tr>
+                `);
+             }  
+        }
+
     }
     
     $("#login-submit").on("click", function(){

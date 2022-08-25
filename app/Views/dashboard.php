@@ -50,11 +50,18 @@
                 <div id="recommended-word-length" class="alert alert-success"></div>
 
                 <div class="col-12 mt-3">
-                <form action="" class="">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control form-control-lg" placeholder="Search Here" id="searchterm">
-                        <button type="button" id="searchbtn" class="input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>
+                <form class="mb-4">
+
+                    <div class="mb-3">
+                        <label for="searchterm" class="form-label d-block fw-bold">Search</label>
+                        <div class="d-md-flex">
+                            <input type="text" class="form-control form-control-md" placeholder="Search Here" id="searchterm">
+                            <select id="search-locations-select" class="form-select form-control-lg mt-2 mt-md-0 ms-md-2">
+                                <option value="585069bfee19ad271e9bc66f">select location</option>
+                            </select>
+                        </div>
                     </div>
+                    <button type="button" id="searchbtn" class="d-inline input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>                    
                 </form>
             </div>
 

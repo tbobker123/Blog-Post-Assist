@@ -26,6 +26,7 @@
                 </span>
                 <span class="float-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
                 <span class="float-end ms-3 me-3"><a href="/configuration">Settings</a></span>
+                <span class="float-end ms-3 me-3"><a href="/">Dashboard</a></span>
             </div>
         </div>
 
@@ -35,9 +36,14 @@
                 <h4>Settings</h4>
 
                 <?php if (session()->getFlashdata('config') !== NULL) : ?>
-                <div class="alert alert-success" role="alert">
+                <div id="alert" class="alert alert-success" role="alert">
                     <?php echo session()->getFlashdata('config'); ?>
                 </div>
+                <script>
+                    setTimeout(function(){
+                        $("#alert").fadeOut();
+                    },2000)
+                </script>
                 <?php endif; ?>
 
                 <form method="post" action="/configuration/update">

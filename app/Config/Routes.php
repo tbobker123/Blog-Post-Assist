@@ -54,7 +54,7 @@ $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes)
     $routes->post("topics", "ApiController::topics");
     $routes->post("section", "ApiController::section");
     $routes->post("search", "ApiController::searchResults");
-     
+    $routes->get("locations", "ApiController::fetchLocations");
 });
 
 /*

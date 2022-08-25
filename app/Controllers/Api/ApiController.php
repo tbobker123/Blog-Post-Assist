@@ -133,35 +133,46 @@ class ApiController extends ResourceController
     public function searchResults()
     {
         $serp_results = $this->query['serp'];
-
         $query = urlencode($this->request->getVar("query"));
-
+        $location = urlencode($this->request->getVar("location"));
         $serpapi_key = getenv("SERPAPI");
 
-        $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=$serpapi_key&num=$serp_results&gl=uk";
-       
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $headers = [
-            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'User-Agent:  Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
-        ];
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        // $output contains the output string
-        $output = curl_exec($ch);
+        $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=$serpapi_key&num=$serp_results&gl=$location";
+    
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            $headers = [
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                'User-Agent:  Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+            ];
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            // $output contains the output string
+            $output = curl_exec($ch);
+    
+            // close curl resource to free up system resources
+            curl_close($ch);        
+            
+            $process = $this->processSearchResults($output);
+    
+            $serp_response = [
+                "results" => $process['searchResults'],
+                "wordcount" => ($this->total_word_count/$this->total_search_results) * 1.3,
+                "relatedquestions" => $process['relatedQuestions']
+            ];
 
-        // close curl resource to free up system resources
-        curl_close($ch);        
-        
-        $process = $this->processSearchResults($output);
-        
-        return  $this->response->setJSON([
-            "results" => $process['searchResults'],
-            "wordcount" => ($this->total_word_count/$this->total_search_results) * 1.3,
-            "relatedquestions" => $process['relatedQuestions']
-        ]);
+            //echo $url;
+            
+            return  $this->response->setJSON($serp_response);
+            
+        } catch (\Throwable $th) {
+            return $this->response([
+                'error' => 'request not successful',
+                'code' => $th
+            ]);
+        }
+
     }
 
     private function processSearchResults($serpapi){
@@ -191,6 +202,10 @@ class ApiController extends ResourceController
             "relatedQuestions" => (property_exists($results, 'related_questions')) ? $results->related_questions : ["No related questions"]
         ];
  
+    }
+
+    private function serpSave($query, $response){
+
     }
 
     private function getWordCountAndHeading($url)
@@ -231,6 +246,26 @@ class ApiController extends ResourceController
            return false;
         }
 
+    }
+
+    public function fetchLocations(){
+
+        $query = urlencode($this->request->getVar("q"));
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://serpapi.com/locations.json?q=$query&limit=5");
+
+        //return the transfer as a string
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+
+        // $output contains the output string
+        $output = curl_exec($ch);
+
+        // close curl resource to free up system resources
+        curl_close($ch); 
+        
+        return $this->response->setJSON($output);
     }
 
     /**
