@@ -47,6 +47,7 @@ class ApiController extends ResourceController
                 'max_tokens' => 4000,
                 'frequency_penalty' => 0,
                 'presence_penalty' => 0.6,
+                'n' => 5,
              ]));
              
              unset($open_ai);
