@@ -22,7 +22,9 @@ function loadGoogleCountries(){
     .then((data) => {
         $("#search-locations-select").empty();
         data.map(item => {
-            $("#search-locations-select").append(`<option value="${item.country_code}">${item.country_name}</option>`);
+            let selected = "";
+            if(item.country_name == "United Kingdom") selected = "selected"
+            $("#search-locations-select").append(`<option value="${item.country_code}" ${selected}>${item.country_name}</option>`);
         });
     })
 }
@@ -55,8 +57,61 @@ tinymce.init({
             mySave();
         });
     },
+    init_instance_callback: function (editor) {
+        editor.on('keyUp', function (e) {
+          compareTextWithExtractedKeywords(editor.getContent({format: 'text'}));
+        });
+    },
     height: 700
 });
+
+function compareTextWithExtractedKeywords(text){
+    let matched = [];
+    let notMatched = [];
+    const inputText = text.toLowerCase();
+    const extractedKeywords = $(".extracted-keywords div");
+
+    /**
+     * Loop through all extract keywords
+     */
+    extractedKeywords.each(function(i) {
+
+        /**
+         * start matching each keyword to the text
+         */
+        let keyword = $(this).text().trim();
+
+        /**
+         * If the keyword is found in the main text
+         */
+        if(inputText.indexOf(keyword.toLowerCase()) > -1){
+
+            /**
+             * check if is not already tracked and add to 
+             * the matched array
+             */
+            if(matched.indexOf(keyword) == -1){
+                matched.push(extractedKeywords[i]);
+            }
+
+        } else {
+            /**
+             * Otherwise the keyword does not match the text
+             * so we can make sure it remains color black.
+             */
+            notMatched.push(extractedKeywords[i]);
+        }
+    });
+
+    matched.forEach((m) => {
+        m.style.color = '#08bd26';
+    });
+    notMatched.forEach((n) => {
+        n.style.color = 'black';
+    });
+
+
+}
 
 function mySave() {
     console.log("Saved");
@@ -81,6 +136,50 @@ function clearSaved(){
 
 
 $(document).ready(function() {
+
+    $(".hide-until-results").hide();
+
+    function fetchSERPUsageANDSavedReports(){
+
+        fetch('/api/serp', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }})
+        .then((res) => { return res.json(); })
+        .then(data => {
+            $("#serpapi-account-info").html(
+                `<div class="fw-bold display-7">Current Plan: ${data.plan}, 
+                Plan Searches:${data.searches}, 
+                Plan Remining:${data.remaining}, 
+                Total Remaining: ${data.total_remaining},
+                Plan Usage:${data.usage}</div>`
+            );
+        });
+
+        $("#saved-reports").empty();
+        $("#saved-reports").append(`<option selected>select report</option>`);
+
+        fetch('/api/reports', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }})
+            .then((res) => { return res.json(); })
+            .then(data => {
+                data.map(d => {
+                    let query = d.query.replace(/\+/g, ' ')
+                    $("#saved-reports").append(
+                        `<option value="${d.id}">${query} (${d.wordcount})</option>`
+                    );
+                })
+            });
+    }
+    fetchSERPUsageANDSavedReports();
+
+
 
     // When the copy button is clicked, select the value of the text box, attempt
     // to execute the copy command, and trigger event to update tooltip message
@@ -109,6 +208,36 @@ $(document).ready(function() {
           .tooltip('fixTitle');
     });
 
+    $("#generate-blog-post-button").click(function() {
+        
+        const ID = $("#generate-content-type").val();
+
+        if(ID == "select"){
+            alert("Select a type");
+            return;
+        }
+    
+        const endpoint = ID.split("-")[2];
+    
+        const resultArea = $("#generated-content-area");
+    
+        $("#generate-blog-post-button").html("loading....");
+    
+        fetch('/api/generator', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({prompt: $("#generate-content-description").val(), type: endpoint})
+        })
+        .then((res) => { return res.json(); })
+        .then(data => {
+            $(resultArea).html(data.result);
+            $("#generate-blog-post-button").html("Generate");
+        });
+    });
+
     
     $(".openai-button").click(function() {
         
@@ -134,37 +263,39 @@ $(document).ready(function() {
         });
     });
 
-    /**
-     * Fetch location data from JSON file
-     */
-     /*let typingTimer;
-      $("#search-locations").keyup(function(){
-        clearTimeout(typingTimer);
-        if ($('#search-locations').val()) {
-            typingTimer = setTimeout(function(){
-                const search_value = $('#search-locations').val().replace(" ", "+");
-                fetch(`http://localhost:8080/api/locations?q=${search_value}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log(data);
-                    $("#search-locations-select").empty();
-                    data.map(item => {
-                        $("#search-locations-select").append(`<option value="${item.id}">${item.canonical_name}</option>`);
-                    });
-                });
-            }, 1000);
-        }
-    });*/
-
     loadGoogleCountries();
     
-    
+    $("#loadreport").on('click', (e) => {
+        const query = $("#saved-reports option:selected").text().split("(")[0].trim();
+        $("#searchterm").val(query);
+        $("#searchbtn").click();
+    });
+
+    $("#deletereport").on('click', e => {
+        const id = $("#saved-reports option:selected").val();
+        fetch('/api/deletereport', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({reportid: id})
+            })
+            .then((res) => { return res.json(); })
+            .then(data => {
+                alert(data.status.toString());
+            });
+    })
 
     $("#searchbtn").on('click', (e) => {
+
+        $(".hide-until-results").hide();
 
         $("#results").empty();
         $("#recommended-word-length").empty();
         $("#related-questions").empty();
+        $(".extracted-keywords").empty();
+        $("#top-title").empty();
         $("#loading").html("loading...");
 
         const postData = {query: $("#searchterm").val(), location: $("#search-locations-select").val()};    
@@ -182,22 +313,34 @@ $(document).ready(function() {
         }).then(data => {
             parseResults(data);
             $("#loading").html("");
+            fetchSERPUsageANDSavedReports();
+            $(".hide-until-results").show();
+            $("#loading").empty();
         });
         
     });
 
-    $("#save-search").on("click", function(e){
-
-    })
-    
     function parseResults(result){
         localStorage.setItem("serpresults", JSON.stringify(result));
         console.log(result);
 
         const results = result;
+        let titles = [];
         $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
-        for(let c=0;c<results.results.length;c++){
+        for(let c=0;c<results.results.length;c++)
+        {
             let item = results.results[c];
+            if(item.wordcount > (results.wordcount * 1.2)){
+                
+                $("#top-title").append(`
+                    <tr>
+                    <td scope="row">${item.position}</td>
+                    <td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>
+                    <td>${item.wordcount}</td>
+                    </tr> 
+                `);
+            }
+
             $("#results").append(`
             <tr>
                 <td scope="row">${item.title}</td>
@@ -231,6 +374,13 @@ $(document).ready(function() {
                     </tr>
                 `);
              }  
+        }
+
+        for(let kw=0;kw<results.keywords.length;kw++){
+            let keyword = results.keywords[kw];
+            $(".extracted-keywords").append(`
+                <div class="d-inline col-md-3 h5 p-2 m-2">${keyword.keyword}</div>
+            `);
         }
 
     }

@@ -16,7 +16,7 @@
 
       <div class="row mb-4 mt-3">
         <div class="col p-2 text-center">
-            <span class="h1" style="font-family: 'Kaushan Script', cursive;">
+            <span class="h1">
               <a href="/">Blog Post Creator</a>
             </span>
         </div>

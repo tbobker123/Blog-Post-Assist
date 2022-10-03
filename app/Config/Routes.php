@@ -53,8 +53,13 @@ $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes)
     $routes->post("outline", "ApiController::outline");
     $routes->post("topics", "ApiController::topics");
     $routes->post("section", "ApiController::section");
+    $routes->post("generator", "ApiController::openAIPrompt");
     $routes->post("search", "ApiController::searchResults");
     $routes->get("locations", "ApiController::fetchLocations");
+    $routes->get("serp", "ApiController::serpAPIAccountInfo");
+    $routes->get("extractor", "ApiController::fetchKeywordExtractor");
+    $routes->get("reports", "ApiController::fetchSavedReports");
+    $routes->post("deletereport", "ApiController::deleteSavedReport");
 });
 
 /*

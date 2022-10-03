@@ -1,10 +1,13 @@
 # Blog Post Creator - Application Starter
+<img width="1100" alt="Screenshot 2022-08-18 at 16 35 25" src="https://user-images.githubusercontent.com/110484739/185435817-7d751319-f26d-45f4-af0d-7560999a20f4.png">
 
-<img width="991" alt="Screenshot 2022-08-30 at 12 34 03" src="https://user-images.githubusercontent.com/110484739/187427508-63558466-5971-48fa-8e9f-32f1fc6982e5.png">
+<img width="1390" alt="Screenshot 2022-08-18 at 16 34 01" src="https://user-images.githubusercontent.com/110484739/185435843-1646a04c-4c6c-4fd7-b2e2-1082a04ef6b3.png">
 
-<img width="963" alt="Screenshot 2022-08-30 at 12 36 08" src="https://user-images.githubusercontent.com/110484739/187427519-52a246eb-e75a-4269-b8ce-afccb0cd1740.png">
+<img width="1095" alt="Screenshot 2022-08-18 at 16 34 18" src="https://user-images.githubusercontent.com/110484739/185435859-84929c37-7c45-47eb-a636-faf045fa78b9.png">
 
-<img width="1064" alt="Screenshot 2022-08-30 at 12 40 01" src="https://user-images.githubusercontent.com/110484739/187427526-c4720a6f-755d-475f-9956-450876cc8268.png">
+<img width="1211" alt="Screenshot 2022-08-19 at 09 05 32" src="https://user-images.githubusercontent.com/110484739/185573619-9e1dfd00-0786-4f4c-8d0c-ad18b86b8eeb.png">
+
+
 
 ## What is Blog Post Creator?
 

@@ -4,22 +4,17 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class SaveSERP extends Model
+class Queries extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'saveserps';
+    protected $table            = 'queries';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [
-        'query',
-        'results',
-        'wordcount',
-        'relatedquestions'
-    ];
+    protected $allowedFields    = ['query','results','relatedquestions','wordcount'];
 
     // Dates
     protected $useTimestamps = false;

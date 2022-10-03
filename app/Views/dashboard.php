@@ -19,9 +19,9 @@
 
     <div class="container">
 
-    <div class="row mb-4 mt-3">
+        <div class="row mb-4 mt-3">
             <div class="col p-2">
-                <span class="h1 d-block text-xs-center" style="font-family: 'Kaushan Script', cursive;">
+                <span class="h1 d-block text-xs-center">
                   <a href="/">Blog Post Creator</a>
                 </span>
                 <span class="float-md-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
@@ -35,8 +35,8 @@
 
                 <div class="tab">
                     <button class="tablinks firstload" onclick="openCity(this, 'serp-analysis')">SERP Analysis</button>
-                    <button class="tablinks" onclick="openCity(this, 'generate-content')">Generate Content</button>
                     <button class="tablinks" onclick="openCity(this, 'editor')">Content Editor</button>
+                    <button class="tablinks" onclick="openCity(this, 'generate-content')">Generate Content</button>
                   </div>
             </div>
         </div>
@@ -45,13 +45,14 @@
 
             <div id="serp-analysis" class="col-12 tabcontent" style="display: block">
 
-                <div style="min-height:900px" class="mt-2">
+                <div class="mt-2">
+
+                <div id="serpapi-account-info" class="alert alert-info"></div>
 
                 <div id="recommended-word-length" class="alert alert-success"></div>
 
                 <div class="col-12 mt-3">
                 <form class="mb-4">
-
                     <div class="mb-3">
                         <label for="searchterm" class="form-label d-block fw-bold">Search</label>
                         <div class="d-md-flex">
@@ -61,14 +62,62 @@
                             </select>
                         </div>
                     </div>
-                    <button type="button" id="searchbtn" class="d-inline input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>                    
+                    <button type="button" id="searchbtn" class="input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>                    
                 </form>
             </div>
+
+            <div class="col-12">
+                <label for="saved-reports" class="form-label d-block fw-bold">Saved Reports</label>
+                <div class="d-flex">
+                    <select id="saved-reports" class="form-select form-control-lg mt-2 mt-md-0">
+                        <option>Select Report</option>
+                    </select>
+                </div>
+                <button type="button" id="loadreport" class="mt-3 d-inline input-group-text btn-success"><i class="bi bi-search me-2"></i> Load</button>                    
+                <button type="button" id="deletereport" class="mt-3 d-inline input-group-text btn-danger"><i class="bi bi-search me-2"></i> Delete</button>                    
+            </div>
+
+
+            <div id="loading"></div>
+
+        </div>
+
+        <div class="row hide-until-results" style="min-height:900px">
+
+                <div class="mb-5 mt-5">
+                    <h3>Keywords</h3>
+                    <table class="table table-light mt-3 table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col">Keywords</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <td class="extracted-keywords"></td>
+                        </tbody>
+                    </table>  
+                </div>
+
+                <div class="mb-5">
+                    <h3>Top Titles</h3>
+
+                    <table class="table table-light mt-3 table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col">Position</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Word Count</th>
+                        </tr>
+                        </thead>
+                        <tbody id="top-title"></tbody>
+                    </table>  
+                </div>
+
 
                 <div class="mb-5">
                     <h3>Related Questions</h3>
 
-                    <table class="table table-light mt-3">
+                    <table class="table table-light mt-3 table-responsive">
                         <thead>
                         <tr>
                             <th scope="col">Question</th>
@@ -83,7 +132,7 @@
                 <div class="mb-5 border-top pt-5">
                     <h3>Search Results</h3>
 
-                        <table class="table table-light mt-3">
+                        <table class="table table-light mt-3 table-responsive">
                             <thead>
                             <tr>
                                 <th scope="col">Title</th>
@@ -97,64 +146,27 @@
                         </table>  
                 </div>
 
-                <div id="loading"></div>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div id="generate-content" class="col-12 tabcontent">
-                <div class="h-100">
-                    <div class="container">
-                        
-                        <div class="row mt-2 mb-2 p-3 pb-4 border-bottom">
-                            <div class="col-12">
-                                <h3>Blog Post Topics</h3>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <input type="text" name="searchterm" id="prompt" class="w-75">
-                                <input class="openai-button" id="blog-post-topics" type="button" value="Post Topics">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <textarea class="p-4" id="blog-post-topics-textarea" cols="50" rows="10"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="row mt-2 mb-2 p-3 pb-4 border-bottom">
-                            <div class="col-12">
-                                 <h3>Blog Post Outline</h3>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <input type="text" name="searchterm" id="prompt" class="w-75">
-                                <input class="openai-button" id="blog-post-outline" type="button" value="Post Outline">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <textarea class="p-4" id="blog-post-outline-textarea" cols="50" rows="10"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="row mt-2 mb-2 p-3 pb-4 border-bottom">
-                            <div class="col-12">
-                                <h3>Blog Post Section</h3>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <input type="text" name="searchterm" id="prompt" class="w-75">
-                                <input class="openai-button" id="blog-post-section" type="button" value="Post Section">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <textarea class="p-4" id="blog-post-section-textarea" cols="50" rows="10"></textarea>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="" id="blogcontent"></div>   
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="editor p-3 col-12 tabcontent" id="editor">
+
+                <div class="mb-5 mt-5">
+                    <h3>Keywords</h3>
+                    <table class="table table-light mt-3 table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col">Keywords</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <td class="extracted-keywords"></td>
+                        </tbody>
+                    </table>  
+                </div>
+
                 <div class="float-md-end">
                     <button class="btn btn-success" onclick="mySave()">Save</button>
                     <button onclick="javascript: clearSaved()" type="button" class="btn btn-danger">Delete</button>
@@ -166,6 +178,42 @@
                 <div id="saved"></div>
             </div>
         </div>
+
+        <div class="row">
+
+            <div id="generate-content" class="col-12 tabcontent">
+            <div class="row">
+                            
+                <div class="col-12 col-md-4">
+                    <div class="mb-3">
+                        <lable for="generate-content-type">Type</lable>
+                        <select id="generate-content-type" class="form-select" aria-label="Default select example">
+                            <option value="select" selected>Open this select menu</option>
+                            <option value="blog-post-topics">Post Titles</option>
+                            <option value="blog-post-outline">Post Outlines</option>
+                            <option value="blog-post-section">Post Section</option>
+                            <option value="blog-post-open">Custom Prompt</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="generate-content-response" class="form-label">Description</label>
+                        <textarea class="form-control" id="generate-content-description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary mb-3" id="generate-blog-post-button">Generate</button>
+                    </div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <textarea class="p-2 border" style="min-height:350px;" id="generated-content-area" cols="50" rows="10"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        
     </div>
 
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

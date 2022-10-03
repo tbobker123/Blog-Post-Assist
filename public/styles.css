@@ -42,3 +42,14 @@ background-color: #ddd;
 #recommended-word-length{
     display: none;
 }
+
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+textarea{
+    width:100%;
+    border:0;
+}
