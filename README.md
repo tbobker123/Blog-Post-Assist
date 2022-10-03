@@ -1,11 +1,10 @@
 # Blog Post Creator - Application Starter
-<img width="1100" alt="Screenshot 2022-08-18 at 16 35 25" src="https://user-images.githubusercontent.com/110484739/185435817-7d751319-f26d-45f4-af0d-7560999a20f4.png">
 
-<img width="1390" alt="Screenshot 2022-08-18 at 16 34 01" src="https://user-images.githubusercontent.com/110484739/185435843-1646a04c-4c6c-4fd7-b2e2-1082a04ef6b3.png">
+<img width="1120" alt="Screenshot 2022-10-03 at 10 59 59" src="https://user-images.githubusercontent.com/110484739/193558393-ffc8d78b-bae9-43f6-9d65-98005dc6aecc.png">
+<img width="1108" alt="Screenshot 2022-10-03 at 11 02 45" src="https://user-images.githubusercontent.com/110484739/193558400-f20f9a9e-8af0-45f9-b2ca-5757042986b8.png">
+<img width="1107" alt="Screenshot 2022-10-03 at 11 04 49" src="https://user-images.githubusercontent.com/110484739/193558403-c0e98dd8-ef43-4885-b396-e550fcaf99ec.png">
+<img width="1079" alt="Screenshot 2022-10-03 at 11 07 34" src="https://user-images.githubusercontent.com/110484739/193558405-ad43cbb9-cea0-4234-a389-c1f863d88f56.png">
 
-<img width="1095" alt="Screenshot 2022-08-18 at 16 34 18" src="https://user-images.githubusercontent.com/110484739/185435859-84929c37-7c45-47eb-a636-faf045fa78b9.png">
-
-<img width="1211" alt="Screenshot 2022-08-19 at 09 05 32" src="https://user-images.githubusercontent.com/110484739/185573619-9e1dfd00-0786-4f4c-8d0c-ad18b86b8eeb.png">
 
 
 
@@ -19,6 +18,8 @@ This script should get you up and running with a self hosted platform that utili
 SerpAPI is used to fetch and analyse Google search results and estimate blog post word count and also top performing results outlines. You get 100 searches a month free, or you can upgrade to a paid subscription for more searches. 
 
 OpenAI is used to generate content using their AI content generation tool. This costs per query but is very cheap. You'll find you might only spend less than $10 a month and generate 1000s of words. Much cheaper than commercial platforms. 
+
+RapidAPI to analyse the top ranked blog posts and extract the top keyword phrases that you need to use in your blog post content. This is the RapidAPI that you need to connect with https://rapidapi.com/tim-_W7DOt_W2/api/extract-keywords1/ and update the API key in the ```.env``` file. 
 
 There is also a content editor built into this script so you can draft your blog posts. It auto saves what you've written to your browser storage so you can come back to the draft at a later date. You'll need to sign up to [tiny.cloud](https://tiny.cloud) for an API key. 
 
