@@ -26,10 +26,9 @@ class Auth extends BaseController
         $password = $this->request->getPost('password');
 
         $stored_username = getenv("USERNAME");
-        $stored_password = getenv("PASSWORD");
 
         if($stored_username == $username){
-            if($password == $stored_password){
+            if(password_verify($password, getenv("PASSWORD"))){
                 session()->set('loggedInUser', $stored_username);
                 return redirect()->to('/dashboard');
             } else {

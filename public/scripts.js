@@ -30,7 +30,7 @@ function loadGoogleCountries(){
 }
 
 
-function openCity(evt, cityName) 
+function topTabs(evt, cityName) 
 {
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
@@ -118,6 +118,19 @@ function mySave() {
     localStorage.setItem("blogContent", tinyMCE.activeEditor.getContent({format : 'raw'}));
     $("#saved").html(`Saved at ${new Date().toLocaleString().replace(',','')}`);
     $("#export-post").text(tinymce.activeEditor.getContent());
+   /* fetch('/api/saveblog', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({keyword: "This is the keyword", text: "This is the blog psot", csrf_token_name: $("#csrf_token_name").val()})
+        })
+        .then((res) => { return res.json(); })
+        .then(data => {
+            console.log(data);
+        });
+    */
 }
 
 function copyDivToClipboard() {
@@ -134,14 +147,33 @@ function clearSaved(){
     tinyMCE.activeEditor.setContent(localStorage.getItem("blogContent"));
 }
 
+function updateCSRFHash(hash){
+    $("#csrf_token_name").val(hash);
+}
 
-$(document).ready(function() {
+function fetchSERPUsageANDSavedReports(){
 
-    $(".hide-until-results").hide();
+    fetch('/api/serp', {
+    method: 'GET',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }})
+    .then((res) => { return res.json(); })
+    .then(data => {
+        $("#serpapi-account-info").html(
+            `<div class="fw-bold display-7">Current Plan: ${data.plan}, 
+            Plan Searches:${data.searches}, 
+            Plan Remining:${data.remaining}, 
+            Total Remaining: ${data.total_remaining},
+            Plan Usage:${data.usage}</div>`
+        );
+    });
 
-    function fetchSERPUsageANDSavedReports(){
+    $("#saved-reports").empty();
+    $("#saved-reports").append(`<option selected>select report</option>`);
 
-        fetch('/api/serp', {
+    fetch('/api/reports', {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
@@ -149,44 +181,91 @@ $(document).ready(function() {
         }})
         .then((res) => { return res.json(); })
         .then(data => {
-            $("#serpapi-account-info").html(
-                `<div class="fw-bold display-7">Current Plan: ${data.plan}, 
-                Plan Searches:${data.searches}, 
-                Plan Remining:${data.remaining}, 
-                Total Remaining: ${data.total_remaining},
-                Plan Usage:${data.usage}</div>`
-            );
+            data.map(d => {
+                let query = d.query.replace(/\+/g, ' ')
+                $("#saved-reports").append(
+                    `<option value="${d.id}">${query} (${d.wordcount})</option>`
+                );
+            })
         });
+}
 
-        $("#saved-reports").empty();
-        $("#saved-reports").append(`<option selected>select report</option>`);
 
-        fetch('/api/reports', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }})
-            .then((res) => { return res.json(); })
-            .then(data => {
-                data.map(d => {
-                    let query = d.query.replace(/\+/g, ' ')
-                    $("#saved-reports").append(
-                        `<option value="${d.id}">${query} (${d.wordcount})</option>`
-                    );
-                })
-            });
+function parseResults(result){
+    localStorage.setItem("serpresults", JSON.stringify(result));
+    console.log(result);
+
+    const results = result;
+    let titles = [];
+    $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
+    for(let c=0;c<results.results.length;c++)
+    {
+        let item = results.results[c];
+        if(item.wordcount > (results.wordcount * 1.2)){
+            
+            $("#top-title").append(`
+                <tr>
+                <td scope="row">${item.position}</td>
+                <td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>
+                <td>${item.wordcount}</td>
+                </tr> 
+            `);
+        }
+
+        $("#results").append(`
+        <tr>
+            <td scope="row">${item.title}</td>
+            <td><a href="${item.link}" target="_blank"> ${url_domain(item.link)}</a></td>
+            <td>${item.snippet}</td>
+            <td>${item.wordcount}</td>
+            <td>
+                <div>
+                    <div><strong>h1:</strong> ${arrayToLists(item.headings.h1)}</div>
+                    <div><strong>h2:</strong> ${arrayToLists(item.headings.h2)}</div>            
+                </div>
+            </td>
+        </tr>
+        `);
     }
+
+    if(results.relatedquestions[0] == "No related questions"){
+        $("#related-questions").append(`
+        <tr>
+            <td colspan="3">No related questions</td>
+        </tr>
+    `);
+    } else {
+        for(let d=0;d<results.relatedquestions.length;d++){
+            let question = results.relatedquestions[d];
+            $("#related-questions").append(`
+                <tr>
+                    <td scope="row">${question.question}</td>
+                    <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
+                    <td>${question.title}</td>
+                </tr>
+            `);
+         }  
+    }
+
+    for(let kw=0;kw<results.keywords.length;kw++){
+        let keyword = results.keywords[kw];
+        $(".extracted-keywords").append(`
+            <div class="d-inline col-md-3 h5 p-2 m-2">${keyword.keyword}</div>
+        `);
+    }
+
+}
+
+
+
+$(document).ready(function() {
+
+    $(".hide-until-results").hide();
+
     fetchSERPUsageANDSavedReports();
 
-
-
-    // When the copy button is clicked, select the value of the text box, attempt
-    // to execute the copy command, and trigger event to update tooltip message
-    // to indicate whether the text was successfully copied.
     $('#copy-button').bind('click', function() {
       var input = document.querySelector('#export-post');
-      //input.setSelectionRange(0, input.value.length + 1);
       try {
         var success = document.execCommand('copy');
         if (success) {
@@ -199,7 +278,6 @@ $(document).ready(function() {
       }
     });
   
-    // Handler for updating the tooltip message.
     $('#copy-button').bind('copied', function(event, message) {
       $(this).attr('title', message)
           .tooltip('fixTitle')
@@ -224,42 +302,19 @@ $(document).ready(function() {
         $("#generate-blog-post-button").html("loading....");
     
         fetch('/api/generator', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({prompt: $("#generate-content-description").val(), type: endpoint})
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({prompt: $("#generate-content-description").val(), type: endpoint, csrf_token_name: $("#csrf_token_name").val()})
         })
         .then((res) => { return res.json(); })
         .then(data => {
+            console.log(data);
             $(resultArea).html(data.result);
             $("#generate-blog-post-button").html("Generate");
-        });
-    });
-
-    
-    $(".openai-button").click(function() {
-        
-        const ID = $(this).attr("id");
-    
-        const endpoint = ID.split("-")[2];
-    
-        const resultArea = document.getElementById(ID + "-textarea");
-    
-        $(resultArea).html("loading....");
-    
-        fetch('/api/' + endpoint, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({prompt: $("#prompt").val()})
-        })
-        .then((res) => { return res.json(); })
-        .then(data => {
-            $(resultArea).html(data.result);
+            updateCSRFHash(data.crsf_hash);
         });
     });
 
@@ -279,11 +334,13 @@ $(document).ready(function() {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({reportid: id})
+            body: JSON.stringify({reportid: id, csrf_token_name: $("#csrf_token_name").val()})
             })
             .then((res) => { return res.json(); })
             .then(data => {
                 alert(data.status.toString());
+                $('#saved-reports option:selected').remove();
+                updateCSRFHash(data.crsf_hash);
             });
     })
 
@@ -298,7 +355,7 @@ $(document).ready(function() {
         $("#top-title").empty();
         $("#loading").html("loading...");
 
-        const postData = {query: $("#searchterm").val(), location: $("#search-locations-select").val()};    
+        const postData = {query: $.trim($("#searchterm").val()), location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};    
         const fetchPromise = fetch("/api/search", {
             method: 'POST',
             headers: {
@@ -316,74 +373,11 @@ $(document).ready(function() {
             fetchSERPUsageANDSavedReports();
             $(".hide-until-results").show();
             $("#loading").empty();
+            updateCSRFHash(data.crsf_hash);
         });
         
     });
 
-    function parseResults(result){
-        localStorage.setItem("serpresults", JSON.stringify(result));
-        console.log(result);
-
-        const results = result;
-        let titles = [];
-        $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
-        for(let c=0;c<results.results.length;c++)
-        {
-            let item = results.results[c];
-            if(item.wordcount > (results.wordcount * 1.2)){
-                
-                $("#top-title").append(`
-                    <tr>
-                    <td scope="row">${item.position}</td>
-                    <td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>
-                    <td>${item.wordcount}</td>
-                    </tr> 
-                `);
-            }
-
-            $("#results").append(`
-            <tr>
-                <td scope="row">${item.title}</td>
-                <td><a href="${item.link}" target="_blank"> ${url_domain(item.link)}</a></td>
-                <td>${item.snippet}</td>
-                <td>${item.wordcount}</td>
-                <td>
-                    <div>
-                        <div><strong>h1:</strong> ${arrayToLists(item.headings.h1)}</div>
-                        <div><strong>h2:</strong> ${arrayToLists(item.headings.h2)}</div>            
-                    </div>
-                </td>
-            </tr>
-            `);
-        }
-
-        if(results.relatedquestions[0] == "No related questions"){
-            $("#related-questions").append(`
-            <tr>
-                <td colspan="3">No related questions</td>
-            </tr>
-        `);
-        } else {
-            for(let d=0;d<results.relatedquestions.length;d++){
-                let question = results.relatedquestions[d];
-                $("#related-questions").append(`
-                    <tr>
-                        <td scope="row">${question.question}</td>
-                        <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
-                        <td>${question.title}</td>
-                    </tr>
-                `);
-             }  
-        }
-
-        for(let kw=0;kw<results.keywords.length;kw++){
-            let keyword = results.keywords[kw];
-            $(".extracted-keywords").append(`
-                <div class="d-inline col-md-3 h5 p-2 m-2">${keyword.keyword}</div>
-            `);
-        }
-
-    }
     
     $("#login-submit").on("click", function(){
         
@@ -416,6 +410,11 @@ $(document).ready(function() {
         return false;
     });
 
-    openCity(document.getElementsByClassName("firstload")[0], 'serp-analysis');
+    $(".tablinks").on('click', function(){
+        let tab = $(this).data('tab');
+        topTabs(this, tab);
+    })
+
+    topTabs(document.getElementsByClassName("firstload")[0], 'serp-analysis');
 
   });

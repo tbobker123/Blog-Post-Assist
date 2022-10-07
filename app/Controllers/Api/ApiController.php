@@ -6,6 +6,7 @@ use CodeIgniter\RESTful\ResourceController;
 use Orhanerday\OpenAi\OpenAi;
 use voku\helper\HtmlDomParser;
 use App\Models\Settings;
+use App\Models\APIKeys;
 
 class ApiController extends ResourceController
 {
@@ -20,6 +21,7 @@ class ApiController extends ResourceController
 
      public function __construct(){
         $this->settings = model('Settings');
+        $this->apikeys = model('apikeys');
         $this->query = $this->settings->find(0);
      }
 
@@ -30,8 +32,10 @@ class ApiController extends ResourceController
 
     public function serpAPIAccountInfo(){
 
-        $serpapi_key = getenv("SERPAPI");
-     
+        //$serpapi_key = getenv("SERPAPI");
+        $api_key = $this->apikeys->where('name', 'serpapi')->first();
+        $serpapi_key = $api_key['key'];
+
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, "https://serpapi.com/account?api_key=$serpapi_key");
@@ -66,8 +70,11 @@ class ApiController extends ResourceController
     }
 
     public function openAIPrompt(){
-        
-        $open_ai = new OpenAi(getenv("OPENAI"));
+
+        $openai_api_key = $this->apikeys->where('name','openai')->first();
+        $open_ai = new OpenAi($openai_api_key['key']);
+
+
         $prompt = $this->request->getVar("prompt");
         $type = $this->request->getVar("type");
 
@@ -121,7 +128,8 @@ class ApiController extends ResourceController
              unset($open_ai);
 
             return $this->response->setJSON([
-                'result' => $openAIConfig->choices[0]->text
+                'result' => $openAIConfig->choices[0]->text,
+                'crsf_hash' => csrf_hash()
             ]);
 
         } catch(\Exception $e) {
@@ -151,13 +159,14 @@ class ApiController extends ResourceController
         try{
             $savedReports->query("DELETE FROM queries WHERE id='$reportid'");
             if($savedReports->affectedRows() > 0){
-                return $this->response->setJSON(["status" => "deleted"]);
+                return $this->response->setJSON(["status" => "deleted", 'crsf_hash' => csrf_hash()]);
             } else {
-                return $this->response->setJSON(["status" => "not deleted"]);
+                return $this->response->setJSON(["status" => "not deleted", 'crsf_hash' => csrf_hash()]);
             }
         } catch(\Exception $e){
             return $this->response->setJSON(array(
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'crsf_hash' => csrf_hash()
             ));
         }      
     }
@@ -165,9 +174,14 @@ class ApiController extends ResourceController
     public function searchResults()
     {
         $serp_results = $this->query['serp'];
+
         $query = urlencode($this->request->getVar("query"));
         $location = urlencode($this->request->getVar("location"));
-        $serpapi_key = getenv("SERPAPI");
+
+        $api_key = $this->apikeys->where('name', 'serpapi')->first();
+        $serpapi_key = $api_key['key'];
+
+        //$serpapi_key = getenv("SERPAPI");
 
         $fetchPreviousSERPs = $this->serpRetrieve($query);
         if(isset($fetchPreviousSERPs->resultArray)){
@@ -175,7 +189,7 @@ class ApiController extends ResourceController
         }
 
         $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=$serpapi_key&num=$serp_results&gl=$location";
-    
+
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -189,7 +203,8 @@ class ApiController extends ResourceController
             $output = curl_exec($ch);
     
             // close curl resource to free up system resources
-            curl_close($ch);        
+            curl_close($ch);   
+
             $this->writeContentToDisk();
             $process = $this->processSearchResults($output);
 
@@ -207,13 +222,16 @@ class ApiController extends ResourceController
                 "results" => $process['searchResults'],
                 "wordcount" => ($this->total_word_count/$this->total_search_results) * 1.3,
                 "relatedquestions" => $process['relatedQuestions'],
-                "keywords" => $keywords
+                "keywords" => $keywords,
+                "crsf_hash" => csrf_hash()
             ];
 
             $status = $this->serpSave($query, $serp_response);
+
             if($status !== true){
                 return $this->response->setJson([
-                    'error' => $status
+                    'error' => $status,
+                    'crsf_hash' => csrf_hash()
                 ]);
             }
 
@@ -221,7 +239,8 @@ class ApiController extends ResourceController
             
         } catch (\Exception $e) {
             return $this->response->setJson([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'crsf_hash' => csrf_hash()
             ]);
         }
 
@@ -260,7 +279,42 @@ class ApiController extends ResourceController
         }
     }
 
+    public function saveBlogPostDraft(){
+        $db = new \App\Models\saveBlogPost();
+        $keyword = $this->request->getVar('keyword');
+        $text = $this->request->getVar('text');
+
+        if(empty($keyword) OR empty($text)){
+            return $this->response->setJSON([
+                'error' => 'No blog post to save'
+            ]);
+        }
+
+        $data = [
+            'keyword'=> $keyword,
+            'text' => $text,
+        ];
+
+        return $this->response->setJSON([
+            'result' => $data
+        ]);
+        exit;
+
+        $SaveSERP = new \App\Models\queries();
+        try{
+            $SaveSERP->insert($data);
+            return true;
+        }
+        catch(\Exception $e){
+            return $e->getMessage();
+        }
+    }
+
     public function rapidAPIExtractKeywords(){
+
+        $api_key = $this->apikeys->where('name','rapidapi')->first();
+        $rapidapi_key = $api_key['key'];
+
         $curl = curl_init();
 
         $text = file_get_contents(ROOTPATH . 'text.txt');
@@ -286,7 +340,7 @@ class ApiController extends ResourceController
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/json",
                 "X-RapidAPI-Host: extract-keywords1.p.rapidapi.com",
-                "X-RapidAPI-Key:" .  getenv("RAPIDAPI")
+                "X-RapidAPI-Key:" .  $rapidapi_key
             ],
         ]);
 

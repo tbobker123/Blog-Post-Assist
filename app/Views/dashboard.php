@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.tiny.cloud/1/<?=$tinymce;?>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/<?=$tinymce['key'];?>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
@@ -19,13 +19,17 @@
 
     <div class="container">
 
+
         <div class="row mb-4 mt-3">
-            <div class="col p-2">
+            <div class="col-12 p-2">
                 <span class="h1 d-block text-xs-center">
-                  <a href="/">Blog Post Creator</a>
+                  <a href="/"><img src="logo.png" alt=""></a>
                 </span>
                 <span class="float-md-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
-                <span class="float-md-end ms-3 me-3"><a href="/configuration">Settings</a></span>
+                <span class="float-md-end ms-0 ms-md-3 me-3"><a href="/configuration">Settings</a></span>
+            </div>
+            <div class="col-12 p-2">
+                <a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>
             </div>
         </div>
 
@@ -34,12 +38,16 @@
             <div class="col-12 m-0 p-0">
 
                 <div class="tab">
-                    <button class="tablinks firstload" onclick="openCity(this, 'serp-analysis')">SERP Analysis</button>
-                    <button class="tablinks" onclick="openCity(this, 'editor')">Content Editor</button>
-                    <button class="tablinks" onclick="openCity(this, 'generate-content')">Generate Content</button>
+                    <button class="tablinks firstload" data-tab="serp-analysis">SERP Analysis</button>
+                    <button class="tablinks" data-tab="editor">Content Editor</button>
+                    <button class="tablinks" data-tab="generate-content">Generate Content</button>
                   </div>
             </div>
         </div>
+
+    </div>
+
+    <div class="container">
 
         <div class="row">
 
@@ -233,6 +241,9 @@
     <script>
         setInterval(mySave, 60000);
     </script>
+    <input type="hidden" id="csrf_token_name" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+
+    <?php echo view('footer.php'); ?>
 
 </body>
 </html>

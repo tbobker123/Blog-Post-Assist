@@ -60,6 +60,7 @@ $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes)
     $routes->get("extractor", "ApiController::fetchKeywordExtractor");
     $routes->get("reports", "ApiController::fetchSavedReports");
     $routes->post("deletereport", "ApiController::deleteSavedReport");
+    $routes->post("saveblog", "ApiController::saveBlogPostDraft");
 });
 
 /*

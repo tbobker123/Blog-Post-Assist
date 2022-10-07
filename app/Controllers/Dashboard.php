@@ -15,12 +15,14 @@ class Dashboard extends BaseController
 
     public function __construct(){
         $this->saveSERP = model('queries');
+        $this->apikeys = model('APIKeys');
         //$this->savedSERPs = $this->saveSERP->findAll();
      }   
     
     public function index()
     {
-        $data['tinymce'] = getenv("TINYMCE");
+        
+        $data['tinymce'] = $this->apikeys->where('name', 'tinymce')->first();
         return view('dashboard', $data);
     }
 
