@@ -7,14 +7,14 @@ use CodeIgniter\Model;
 class SaveBlogPost extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'saveblogposts';
+    protected $table            = 'posts';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['keyword','text'];
+    protected $allowedFields    = ['title','text', 'query_id'];
 
     // Dates
     protected $useTimestamps = false;

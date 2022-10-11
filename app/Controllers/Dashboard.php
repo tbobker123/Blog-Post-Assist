@@ -16,13 +16,22 @@ class Dashboard extends BaseController
     public function __construct(){
         $this->saveSERP = model('queries');
         $this->apikeys = model('APIKeys');
-        //$this->savedSERPs = $this->saveSERP->findAll();
      }   
     
     public function index()
     {
-        
-        $data['tinymce'] = $this->apikeys->where('name', 'tinymce')->first();
+        $keys = $this->apikeys->findAll();
+        $data['update_keys'] = false;
+        $data['keys'] = $keys;
+
+        foreach($keys as $key){
+            if($key['key'] == ""){
+                $data['update_keys'] = true;
+            }
+        }
+        $data['tinymce_key'] = $this->apikeys->where('name', 'tinymce')->first()['key'];
+
+        //echo "<pre>"; print_r($data); echo "</pre>"; exit;
         return view('dashboard', $data);
     }
 
