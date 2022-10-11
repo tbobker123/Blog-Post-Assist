@@ -30,8 +30,6 @@ class Dashboard extends BaseController
             }
         }
         $data['tinymce_key'] = $this->apikeys->where('name', 'tinymce')->first()['key'];
-
-        //echo "<pre>"; print_r($data); echo "</pre>"; exit;
         return view('dashboard', $data);
     }
 }
