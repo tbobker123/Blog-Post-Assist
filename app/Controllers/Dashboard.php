@@ -21,6 +21,7 @@ class Dashboard extends BaseController
     public function index()
     {
         $keys = $this->apikeys->findAll();
+        
         $data['update_keys'] = false;
         $data['keys'] = $keys;
 
