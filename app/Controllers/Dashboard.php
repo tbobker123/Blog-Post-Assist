@@ -16,45 +16,23 @@ class Dashboard extends BaseController
     public function __construct(){
         $this->saveSERP = model('queries');
         $this->apikeys = model('APIKeys');
-        //$this->savedSERPs = $this->saveSERP->findAll();
      }   
     
     public function index()
     {
+        $keys = $this->apikeys->findAll();
         
-        $data['tinymce'] = $this->apikeys->where('name', 'tinymce')->first();
+        $data['update_keys'] = false;
+        $data['keys'] = $keys;
+
+        foreach($keys as $key){
+            if($key['key'] == ""){
+                $data['update_keys'] = true;
+            }
+        }
+        $data['tinymce_key'] = $this->apikeys->where('name', 'tinymce')->first()['key'];
         return view('dashboard', $data);
     }
-
-    public function saveSERPResults(){
-
-		if( $this->request->getMethod() == "post" AND $this->request->getPost('save_serps') ){
-			
-			$query = $this->request->getPost('query');
-			$results = $this->request->getPost('results');
-			$relatedquestions = $this->request->getPost('relatedquestions');
-			$wordcount = $this->request->getPost('wordcount');
-
-			$data = [
-				'query'=> $query,
-				'results' => $results,
-				'relatedquestions' => $relatedquestions,
-				'wordcount' => $wordcount,
-			];
-
-			$this->saveSERP->update($data);
-
-			return $this->response([
-                'query' => $query,
-                'saved' => 'true'
-            ]);
-
-		} else {
-            return $this->response([
-                'error' => 'failure'
-            ]);
-        }
-	}
 }
 
 

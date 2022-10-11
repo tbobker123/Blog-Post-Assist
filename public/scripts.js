@@ -1,9 +1,11 @@
-function url_domain(data) {
+function url_domain(data) 
+{
     let  a  = document.createElement('a');
     a.href = data;
     return a.hostname;
 }
-function arrayToLists(arr){
+function arrayToLists(arr)
+{
     try{
         let elm = "<ul>";
         arr.forEach( item => {
@@ -16,7 +18,8 @@ function arrayToLists(arr){
     } 
 }
 
-function loadGoogleCountries(){
+function loadGoogleCountries()
+{
     fetch(`/google-countries.json`)
     .then((response) => response.json())
     .then((data) => {
@@ -46,26 +49,30 @@ function topTabs(evt, cityName)
     //console.log(evt);
 }
 
-tinymce.init({
-    selector: '#blog-post',
-    plugins: 'advlist wordcount autolink lists link image charmap preview anchor pagebreak',
-    toolbar_mode: 'floating',
-    menubar: true,
-    setup: function (editor) {
-        editor.on('init', function (e) {
-            editor.setContent(localStorage.getItem("blogContent"));
-            mySave();
-        });
-    },
-    init_instance_callback: function (editor) {
-        editor.on('keyUp', function (e) {
-          compareTextWithExtractedKeywords(editor.getContent({format: 'text'}));
-        });
-    },
-    height: 700
-});
+if(typeof tinymce != "undefined")
+{
+    tinymce.init({
+        selector: '#blog-post',
+        plugins: 'pagebreak code emoticons image table lists advlist link charmap directionality wordcount autolink charmap preview anchor pagebreak',
+        //toolbar: 'pagebreak | formatselect fontselect fontsizeselect bold italic underline strikethrough forecolor backcolor subscript superscript | alignleft aligncenter alignright alignjustify indent outdent rtl ltr | bullist numlist checklist | emoticons image table link hr charmap',
+        menubar: true,
+        setup: function (editor) {
+            editor.on('init', function (e) {
+                editor.setContent(localStorage.getItem("blogContent"));
+            });
+        },
+        init_instance_callback: function (editor) {
+            editor.on('keyUp', function (e) {
+              compareTextWithExtractedKeywords(editor.getContent({format: 'text'}));
+            });
+        },
+        height: 700
+    });
+}
 
-function compareTextWithExtractedKeywords(text){
+
+function compareTextWithExtractedKeywords(text)
+{
     let matched = [];
     let notMatched = [];
     const inputText = text.toLowerCase();
@@ -109,31 +116,11 @@ function compareTextWithExtractedKeywords(text){
     notMatched.forEach((n) => {
         n.style.color = 'black';
     });
-
-
 }
 
-function mySave() {
-    console.log("Saved");
-    localStorage.setItem("blogContent", tinyMCE.activeEditor.getContent({format : 'raw'}));
-    $("#saved").html(`Saved at ${new Date().toLocaleString().replace(',','')}`);
-    $("#export-post").text(tinymce.activeEditor.getContent());
-   /* fetch('/api/saveblog', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({keyword: "This is the keyword", text: "This is the blog psot", csrf_token_name: $("#csrf_token_name").val()})
-        })
-        .then((res) => { return res.json(); })
-        .then(data => {
-            console.log(data);
-        });
-    */
-}
 
-function copyDivToClipboard() {
+function copyDivToClipboard() 
+{
     var range = document.createRange();
     range.selectNode(document.getElementById("export-post"));
     window.getSelection().removeAllRanges(); // clear current selection
@@ -142,16 +129,21 @@ function copyDivToClipboard() {
     window.getSelection().removeAllRanges();// to deselect
 }
 
-function clearSaved(){
-    localStorage.setItem("blogContent", "");
-    tinyMCE.activeEditor.setContent(localStorage.getItem("blogContent"));
-}
-
-function updateCSRFHash(hash){
+function updateCSRFHash(hash)
+{
     $("#csrf_token_name").val(hash);
 }
 
-function fetchSERPUsageANDSavedReports(){
+function updateBlogPostId(id){
+    if(id == 'updated'){
+        return;
+    } else {
+        $("#save-blog-post-id").val(id);
+    }
+}
+
+function fetchSERPUsageANDSavedReports(query_id)
+{
 
     fetch('/api/serp', {
     method: 'GET',
@@ -159,7 +151,9 @@ function fetchSERPUsageANDSavedReports(){
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }})
-    .then((res) => { return res.json(); })
+    .then((res) => { 
+       return res.json();
+    })
     .then(data => {
         $("#serpapi-account-info").html(
             `<div class="fw-bold display-7">Current Plan: ${data.plan}, 
@@ -171,7 +165,7 @@ function fetchSERPUsageANDSavedReports(){
     });
 
     $("#saved-reports").empty();
-    $("#saved-reports").append(`<option selected>select report</option>`);
+    $("#saved-reports").append(`<option>select report</option>`);
 
     fetch('/api/reports', {
         method: 'GET',
@@ -179,112 +173,153 @@ function fetchSERPUsageANDSavedReports(){
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }})
-        .then((res) => { return res.json(); })
+        .then((res) => { 
+            return res.json(); 
+        })
         .then(data => {
             data.map(d => {
-                let query = d.query.replace(/\+/g, ' ')
+                let query = d.query.replace(/\+/g, ' ');
+                let isSelected = (d.id == query_id) ? 'selected' : '';
                 $("#saved-reports").append(
-                    `<option value="${d.id}">${query} (${d.wordcount})</option>`
+                    `<option value="${d.id}" ${isSelected}>${query} (${d.wordcount})</option>`
                 );
             })
         });
 }
 
 
-function parseResults(result){
-    localStorage.setItem("serpresults", JSON.stringify(result));
-    console.log(result);
-
+function parseResults(result)
+{
     const results = result;
+
+    /**
+     * Store blog posts drafts in browser storage
+     */
+     const blogposts = results.blogposts; console.log(blogposts);
+     localStorage.setItem('blogs', JSON.stringify(blogposts));
+
     let titles = [];
+
     $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
+
+    /**
+     * Show SERP results and top results
+     */
     for(let c=0;c<results.results.length;c++)
     {
         let item = results.results[c];
         if(item.wordcount > (results.wordcount * 1.2)){
             
-            $("#top-title").append(`
-                <tr>
-                <td scope="row">${item.position}</td>
-                <td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>
-                <td>${item.wordcount}</td>
-                </tr> 
-            `);
+            $("#top-title").append(`<tr>`+
+                `<td scope="row">${item.position}</td>`+
+                `<td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>`+
+                `<td>${item.wordcount}</td>`+
+                `</tr>`);
         }
 
-        $("#results").append(`
-        <tr>
-            <td scope="row">${item.title}</td>
-            <td><a href="${item.link}" target="_blank"> ${url_domain(item.link)}</a></td>
-            <td>${item.snippet}</td>
-            <td>${item.wordcount}</td>
-            <td>
-                <div>
-                    <div><strong>h1:</strong> ${arrayToLists(item.headings.h1)}</div>
-                    <div><strong>h2:</strong> ${arrayToLists(item.headings.h2)}</div>            
-                </div>
-            </td>
-        </tr>
-        `);
+        $("#results").append(`<tr>`+
+        `<td scope="row">${item.title}</td>`+
+        `<td><a href="${item.link}" target="_blank">${url_domain(item.link)}</a></td>`+
+        `<td>${item.snippet}</td><td>${item.wordcount}</td>`+
+        `<td><div><div><strong>h1:</strong> ${arrayToLists(item.headings.h1)}</div><div><strong>h2:</strong> ${arrayToLists(item.headings.h2)}</div></div></td>`+
+        `</tr>`);
+        
     }
 
+    /**
+     * Show related questions
+     */
     if(results.relatedquestions[0] == "No related questions"){
-        $("#related-questions").append(`
-        <tr>
-            <td colspan="3">No related questions</td>
-        </tr>
-    `);
+        $("#related-questions").append(`<tr><td colspan="3">No related questions</td></tr>`);
     } else {
         for(let d=0;d<results.relatedquestions.length;d++){
             let question = results.relatedquestions[d];
-            $("#related-questions").append(`
-                <tr>
-                    <td scope="row">${question.question}</td>
-                    <td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>
-                    <td>${question.title}</td>
-                </tr>
-            `);
-         }  
+            $("#related-questions").append(`<tr>`+
+                `<td scope="row">${question.question}</td>`+
+                `<td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>`+
+                `<td>${question.title}</td>`+
+            `</tr>`);
+        }  
     }
 
+    /**
+     * Print out the related keyword words/phrases
+     */
     for(let kw=0;kw<results.keywords.length;kw++){
         let keyword = results.keywords[kw];
         $(".extracted-keywords").append(`
-            <div class="d-inline col-md-3 h5 p-2 m-2">${keyword.keyword}</div>
+            <div class="h5">${keyword.keyword}</div>
         `);
     }
 
+    /**
+     * Populate Blog post drafts
+     */
+    $("#blog-post-drafts").empty();
+    if(Array.isArray(blogposts)){
+        $("#blog-post-drafts-option").text("---Select blog post draft ---");
+        blogposts.map(d => {
+            $("#blog-post-drafts").append(
+                `<option value="${d.id ?? ''}">${d.title ?? 'No title found for draft'}</option>`
+            );
+        })
+    } else {
+        $("#blog-post-drafts").append(
+            `<option value="">No drafts found for keyword</option>`
+        );
+    }
+
+
+}
+
+function fetchSERPResults(query){
+                    
+    $(".hide-until-results").hide();
+    $("#results").empty();
+    $("#recommended-word-length").empty();
+    $("#related-questions").empty();
+    $(".extracted-keywords").empty();
+    $("#top-title").empty();
+    $("#loading").html("loading...");
+
+    const query_id = query.query_id ?? null;
+
+    fetch("/api/search", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(query)
+    }).then(response => {
+        return response.json();
+    }).then(data => {
+        parseResults(data);
+        $("#loading").html("");
+        fetchSERPUsageANDSavedReports(query_id);
+        $(".hide-until-results").show();
+        $("#loading").empty();
+        updateCSRFHash(data.csrf_hash);
+    }).catch((error) => {
+        console.log(error);
+        alert(error);
+        $("#loading").empty();
+      });;
 }
 
 
 
 $(document).ready(function() {
 
+    /**
+     * Page load: load saved reports
+     * populate the countries dropdown 
+     * and load SerpAPI usage
+     */
+
     $(".hide-until-results").hide();
-
     fetchSERPUsageANDSavedReports();
-
-    $('#copy-button').bind('click', function() {
-      var input = document.querySelector('#export-post');
-      try {
-        var success = document.execCommand('copy');
-        if (success) {
-          $('#copy-button').trigger('copied', ['Copied!']);
-        } else {
-          $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
-        }
-      } catch (err) {
-        $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
-      }
-    });
-  
-    $('#copy-button').bind('copied', function(event, message) {
-      $(this).attr('title', message)
-          .tooltip('fixTitle')
-          .tooltip('show')
-          .attr('title', "Copy to Clipboard")
-          .tooltip('fixTitle');
-    });
+    loadGoogleCountries();
 
     $("#generate-blog-post-button").click(function() {
         
@@ -314,20 +349,100 @@ $(document).ready(function() {
             console.log(data);
             $(resultArea).html(data.result);
             $("#generate-blog-post-button").html("Generate");
-            updateCSRFHash(data.crsf_hash);
+            updateCSRFHash(data.csrf_hash);
         });
     });
 
-    loadGoogleCountries();
+    $("#load-blog-post-draft").on("click", function(){
+        console.log(localStorage.getItem("blogs"));
+        const post_id = $("#blog-post-drafts option:selected").val();
+        const blogs = JSON.parse(localStorage.getItem("blogs"));
+        blogs.map((item) => {
+            if(item.id == post_id){
+                tinyMCE.activeEditor.setContent(item.text, {format: 'raw'});
+                $("#blog-post-title").val(item.title);
+                $("#blog-post-id").val(item.id);
+            }
+        })
+    }); 
+
     
-    $("#loadreport").on('click', (e) => {
-        const query = $("#saved-reports option:selected").text().split("(")[0].trim();
-        $("#searchterm").val(query);
-        $("#searchbtn").click();
+    $("#delete-blog-post-draft").on("click", function(){
+
+        const post_id = $("#blog-post-id").val();
+
+        if(post_id == ''){
+            alert("Select a blog draft");
+            return;
+        }
+
+        fetch('/api/deleteblog', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({post_id: post_id, csrf_token_name: $("#csrf_token_name").val()})
+        })
+        .then((res) => { return res.json(); })
+        .then(data => {
+            updateBlogPostId(data.id);
+            updateCSRFHash(data.csrf_hash);
+            alert(`Blog post draft deleted ${data.status}`);
+            $("#blog-post-drafts option:selected").remove();
+            console.log(data); 
+        });
+
+    });
+
+    $("#save-blog-post-draft").on("click", function(){
+
+        const post_id =  $("#blog-post-id").val();
+        const keyword_id = $("#saved-reports option:selected").val();
+        const post_title = $("#blog-post-title").val();
+        const post_body = tinyMCE.activeEditor.getContent();
+
+        const http_post_body = {
+            id: post_id,
+            query_id: keyword_id,
+            title: post_title,
+            text: post_body,
+            csrf_token_name: $("#csrf_token_name").val()
+        }
+
+        if(keyword_id == 'select report'){
+            alert("Select a report before saving");
+            return;
+        }
+
+        
+        fetch('/api/saveblog', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(http_post_body)
+        })
+        .then((res) => { return res.json(); })
+        .then(data => {
+            updateBlogPostId(data.id);
+            updateCSRFHash(data.csrf_hash);
+            alert(data.status);
+            console.log(data);
+            window.location.reload();
+        });
+
     });
 
     $("#deletereport").on('click', e => {
         const id = $("#saved-reports option:selected").val();
+
+        if(id == 'select report'){
+            alert("select a report");
+            return;
+        }
+
         fetch('/api/deletereport', {
             method: 'POST',
             headers: {
@@ -340,45 +455,41 @@ $(document).ready(function() {
             .then(data => {
                 alert(data.status.toString());
                 $('#saved-reports option:selected').remove();
-                updateCSRFHash(data.crsf_hash);
+                updateCSRFHash(data.csrf_hash);
             });
     })
 
-    $("#searchbtn").on('click', (e) => {
+    $("#loadreport").on('click', (e) => {
 
-        $(".hide-until-results").hide();
+        const selectedReport = $("#saved-reports option:selected");
+        const query_id = $("#saved-reports option:selected").val();
 
-        $("#results").empty();
-        $("#recommended-word-length").empty();
-        $("#related-questions").empty();
-        $(".extracted-keywords").empty();
-        $("#top-title").empty();
-        $("#loading").html("loading...");
-
-        const postData = {query: $.trim($("#searchterm").val()), location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};    
-        const fetchPromise = fetch("/api/search", {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(postData)
-        });
-        fetchPromise.then(response => {
-            //console.log(response);
-            return response.json();
-        }).then(data => {
-            parseResults(data);
-            $("#loading").html("");
-            fetchSERPUsageANDSavedReports();
-            $(".hide-until-results").show();
-            $("#loading").empty();
-            updateCSRFHash(data.crsf_hash);
-        });
+        if(selectedReport.val() == 'select report'){
+            alert("select a report");
+            return;
+        }
         
+        if(query_id != ""){
+            const postData = {query_id: query_id, location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};  
+            fetchSERPResults(postData)
+        } else {
+            alert("Error: report not found");
+        }
+        selectedReport.attr('selected','selected');
+        $("#blog-post-id").val('');
     });
 
+    $("#searchbtn").on('click', (e) => {
+
+        if($("#searchterm").val() !== ""){   
+            const postData = {query: $.trim($("#searchterm").val()), location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};  
+            fetchSERPResults(postData)
+        } else {
+            alert("Enter a search term");
+        }
     
+    });
+
     $("#login-submit").on("click", function(){
         
         const login_username = $("#username").val();

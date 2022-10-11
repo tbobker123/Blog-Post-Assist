@@ -10,15 +10,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.tiny.cloud/1/<?=$tinymce['key'];?>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <?php if($tinymce_key != "") : ?>
+        <script src="https://cdn.tiny.cloud/1/<?=$tinymce_key;?>/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <?php endif; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<?php if($update_keys) : ?> 
     <div class="container">
+        <div class="row">
+            <div class="col">
+            <div class="alert alert-danger text-center">No API keys found. <a href="/configuration">Add all your API keys</a></div>
+            <ul>
+            <?php foreach($keys as $key) : ?>
+                <li> <span class="text-uppercase"><?= $key['name']; ?></span> is <?php echo ($key['key'] == "") ? "empty" : "updated"; ?></li>
+            <?php endforeach; ?>
+            </ul>
+            </div>
+        </div>
+    </div>
 
+<?php else: ?>
+   
+    <div class="container">
 
         <div class="row mb-4 mt-3">
             <div class="col-12 p-2">
@@ -35,13 +52,22 @@
 
         <div class="row bg-light p-3">
 
-            <div class="col-12 m-0 p-0">
+            <div class="col-12 m-0 p-0 d-flex justify-content-between">
 
                 <div class="tab">
                     <button class="tablinks firstload" data-tab="serp-analysis">SERP Analysis</button>
                     <button class="tablinks" data-tab="editor">Content Editor</button>
                     <button class="tablinks" data-tab="generate-content">Generate Content</button>
-                  </div>
+                </div>
+
+                <div>
+                    <select id="saved-reports" class="form-control-sm m-0 p-0">
+                        <option>Select Report</option>
+                    </select>
+                    <button type="button" id="loadreport" class="mt-3 d-inline input-group-text btn-success">Load</button>                    
+                    <button type="button" id="deletereport" class="mt-3 d-inline input-group-text btn-danger">Delete</button>  
+                </div>
+
             </div>
         </div>
 
@@ -73,20 +99,6 @@
                     <button type="button" id="searchbtn" class="input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>                    
                 </form>
             </div>
-
-            <div class="col-12">
-                <label for="saved-reports" class="form-label d-block fw-bold">Saved Reports</label>
-                <div class="d-flex">
-                    <select id="saved-reports" class="form-select form-control-lg mt-2 mt-md-0">
-                        <option>Select Report</option>
-                    </select>
-                </div>
-                <button type="button" id="loadreport" class="mt-3 d-inline input-group-text btn-success"><i class="bi bi-search me-2"></i> Load</button>                    
-                <button type="button" id="deletereport" class="mt-3 d-inline input-group-text btn-danger"><i class="bi bi-search me-2"></i> Delete</button>                    
-            </div>
-
-
-            <div id="loading"></div>
 
         </div>
 
@@ -159,32 +171,50 @@
         </div>
 
         <div class="row">
-            <div class="editor p-3 col-12 tabcontent" id="editor">
 
-                <div class="mb-5 mt-5">
-                    <h3>Keywords</h3>
-                    <table class="table table-light mt-3 table-responsive">
-                        <thead>
-                        <tr>
-                            <th scope="col">Keywords</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            <td class="extracted-keywords"></td>
-                        </tbody>
-                    </table>  
+            <div class="container editor p-3 col-12 tabcontent" id="editor">
+
+                <div class="row">
+                    <div class="col-9">
+                        <div class="mb-5 mt-5">
+                            <lable for="blog-post-drafts">Blog Post Drafts</lable>
+                            <div class="col d-flex justify-content-between">
+                            `    <select id="blog-post-drafts" class="form-select" aria-label="Default select example">
+                                    <option id="blog-post-drafts-option" value="select" selected>Load a keyword</option>
+                                </select>
+                                <button type="button" class="btn btn-primary ms-1 me-1" id="load-blog-post-draft">Load</button>
+                                <button type="button" class="btn btn-danger me-1" id="delete-blog-post-draft">Delete</button>
+                            </div>
+                        </div>
+
+                        <h3>Blog Post</h3>
+
+                        <div class="col mt-3 mb-3">
+                            <label for="blog-post-title" class="d-block fw-bold">Blog Post Title</label>
+                            <input type="text" id="blog-post-title" class="w-100" value="">
+                        </div>
+
+                        <div class="col mt-3 mb-3">
+                            <label for="blog-post" class="d-block fw-bold">Blog Post Content</label>
+                            <textarea id="blog-post"></textarea>
+
+                            <div class="m-4">
+                                <input type="hidden" value="" data-keyword="" id="blog-post-id">
+                                <button class="btn btn-success w-100" id="save-blog-post-draft">Save</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-3 mb-5 mt-5">
+                        <h3>Keywords</h3>
+                        <div class="extracted-keywords"></div>
+                    </div>
                 </div>
 
-                <div class="float-md-end">
-                    <button class="btn btn-success" onclick="mySave()">Save</button>
-                    <button onclick="javascript: clearSaved()" type="button" class="btn btn-danger">Delete</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Export</button>
-                </div>
-
-                <h3>Blog Post</h3>
-                <textarea id="blog-post"></textarea>
-                <div id="saved"></div>
             </div>
+        
         </div>
 
         <div class="row">
@@ -238,10 +268,9 @@
     </div>
 
     <script src="scripts.js"></script>
-    <script>
-        setInterval(mySave, 60000);
-    </script>
     <input type="hidden" id="csrf_token_name" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
+
+<?php endif; ?>
 
     <?php echo view('footer.php'); ?>
 
