@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\Queries;
+use App\Models\APIKeys;
 
 class Dashboard extends BaseController
 {
@@ -14,8 +16,8 @@ class Dashboard extends BaseController
      */
 
     public function __construct(){
-        $this->saveSERP = model('queries');
-        $this->apikeys = model('APIKeys');
+        $this->saveSERP = new Queries();
+        $this->apikeys = new APIKeys();
      }   
     
     public function index()
