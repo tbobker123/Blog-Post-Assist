@@ -10,8 +10,8 @@ class Configuration extends BaseController
     
 	public function __construct(){
 
-		$this->settings = model('Settings');
-		$this->apikeys = model('APIKeys');
+		$this->settings = new Settings();
+		$this->apikeys = new APIKeys();
 		helper(['url', 'form']);
 	}
 

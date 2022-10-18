@@ -21,9 +21,10 @@ class ApiController extends ResourceController
      */
 
      public function __construct(){
-        $this->settings = model('Settings');
-        $this->apikeys = model('apikeys');
-        $this->blogdrafts = model('SaveBlogPost');
+        $this->settings = new Settings();
+        $this->apikeys = new APIKeys();
+        $this->blogdrafts = new SaveBlogPost();
+
         $this->query = $this->settings->find(0);
      }
 
