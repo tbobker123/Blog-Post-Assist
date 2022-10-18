@@ -11,32 +11,54 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
   </head>
   <body>
+
     <div class="container">
 
       <div class="row mb-4 mt-3">
         <div class="col p-2 text-center">
             <span class="h1">
               <a href="/">
-                <img src="logo.png" alt="">
+                Blog Post Assist
               </a>
             </span>
         </div>
       </div>
 
       <div class="row">
-        <div class="col-md-4 offset-md-4 mt-3">
 
-          <!--<h4>Sign In</h4>
-          <hr>-->
+        <div class="col-md-4 offset-md-4 mt-3">
           
           <?php if (session()->getFlashdata('failed') !== NULL) : ?>
           <div class="alert alert-danger" role="alert">
               <?php echo session()->getFlashdata('failed'); ?>
           </div>
-      <?php endif; ?>
+          <?php endif; ?>
 
           <form action="/auth/login" method="post" class="form">
-            <?=csrf_field();?>
+          <?php echo csrf_field();?>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="p-0 m-0">Login</h3>
+            </div>
+            <div class="card-body">
+
+            <div class="form-group mb-3">
+              <label for="">Username</label>
+              <input type="text" name="username" placeholder="username" class="form-control">
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="">Password</label>
+              <input type="password" name="password" placeholder="password" class="form-control">
+            </div>
+
+              <input type="submit" value="Login" class="btn btn-primary">
+            </div>
+          </div>
+          </form>
+
+          <!--<form action="/auth/login" method="post" class="form">
+            <?php //csrf_field();?>
             <div class="form-group mb-3">
               <label for="">Username</label>
               <input type="text" name="username" placeholder="username" class="form-control">
@@ -48,10 +70,11 @@
             </div>
 
             <div class="form-group mb-3">
-              <input type="submit" value="Login" class="btn btn-info w-100">
+              <input type="submit" value="Login" class="btn btn-primary w-100">
             </div>
+          </form>-->
 
-          </form>
+
         </div>
       </div>
     </div>
