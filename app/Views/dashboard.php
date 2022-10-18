@@ -40,32 +40,32 @@
         <div class="row mb-4 mt-3">
             <div class="col-12 p-2">
                 <span class="h1 d-block text-xs-center">
-                  <a href="/"><img src="logo.png" alt=""></a>
+                  <a href="/">Blog Post Assist</a>
                 </span>
                 <span class="float-md-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
                 <span class="float-md-end ms-0 ms-md-3 me-3"><a href="/configuration">Settings</a></span>
             </div>
-            <div class="col-12 p-2">
-                <a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>
+            <div class="col-12 d-flex p-2 flex-row-reverse">
+                <!--<a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>    
+-->             <div>
+                    <select id="saved-reports" class="form-control-sm m-0 p-2 fs-6">
+                        <option>Select SERP Report</option>
+                    </select>
+                    <button type="button" id="loadreport" class="mt-3 d-inline input-group-text btn-success">Load</button>                    
+                    <button type="button" id="deletereport" class="mt-3 d-inline input-group-text btn-danger">Delete</button>  
+                </div>
+
             </div>
         </div>
 
-        <div class="row bg-light p-3">
+        <div class="row p-3 pb-0">
 
-            <div class="col-12 m-0 p-0 d-flex justify-content-between">
+            <div class="col-12 m-0 p-0 d-flex justify-content-between border-bottom">
 
                 <div class="tab">
                     <button class="tablinks firstload" data-tab="serp-analysis">SERP Analysis</button>
                     <button class="tablinks" data-tab="editor">Content Editor</button>
                     <button class="tablinks" data-tab="generate-content">Generate Content</button>
-                </div>
-
-                <div>
-                    <select id="saved-reports" class="form-control-sm m-0 p-0">
-                        <option>Select Report</option>
-                    </select>
-                    <button type="button" id="loadreport" class="mt-3 d-inline input-group-text btn-success">Load</button>                    
-                    <button type="button" id="deletereport" class="mt-3 d-inline input-group-text btn-danger">Delete</button>  
                 </div>
 
             </div>
@@ -96,7 +96,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="button" id="searchbtn" class="input-group-text btn-success"><i class="bi bi-search me-2"></i> Search</button>                    
+                    <button type="button" id="searchbtn" class="input-group-text btn-success">Search</button>                    
                 </form>
             </div>
 
@@ -145,7 +145,7 @@
                             <th scope="col">Title</th>
                         </tr>
                         </thead>
-                        <tbody id="related-questions"></tbody>
+                        <tbody id="related-questions"></tbody>  
                     </table>  
                 </div>
                 
@@ -176,10 +176,11 @@
 
                 <div class="row">
                     <div class="col-9">
-                        <div class="mb-5 mt-5">
-                            <lable for="blog-post-drafts">Blog Post Drafts</lable>
-                            <div class="col d-flex justify-content-between">
-                            `    <select id="blog-post-drafts" class="form-select" aria-label="Default select example">
+
+                        <div class="col mt-3 mb-3">
+                            <label for="blog-post-draft" class="d-block fw-bold">Blog Post Drafts</label>
+                            <div class="col d-flex flex-row">
+                            `   <select id="blog-post-drafts" class="form-select" aria-label="Default select example">
                                     <option id="blog-post-drafts-option" value="select" selected>Load a keyword</option>
                                 </select>
                                 <button type="button" class="btn btn-primary ms-1 me-1" id="load-blog-post-draft">Load</button>
@@ -207,7 +208,7 @@
                     </div>
 
 
-                    <div class="col-3 mb-5 mt-5">
+                    <div class="col-3 mb-5 pt-2 bg-light">
                         <h3>Keywords</h3>
                         <div class="extracted-keywords"></div>
                     </div>
@@ -219,7 +220,7 @@
 
         <div class="row">
 
-            <div id="generate-content" class="col-12 tabcontent">
+            <div id="generate-content" class="col-12 tabcontent mt-3">
             <div class="row">
                             
                 <div class="col-12 col-md-4">
@@ -237,6 +238,8 @@
                     <div class="mb-3">
                         <label for="generate-content-response" class="form-label">Description</label>
                         <textarea class="form-control" id="generate-content-description" rows="3"></textarea>
+                        <small>Enter a keyword phrase or description of what want returned</small>
+                        <small>Example when selecting "Post Outline": How does OpenAI work.</small>
                     </div>
 
                     <div class="mb-3">

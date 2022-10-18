@@ -46,7 +46,6 @@ function topTabs(evt, cityName)
     }
     document.getElementById(cityName).style.display = "block";
     evt.className += " active";
-    //console.log(evt);
 }
 
 if(typeof tinymce != "undefined")
@@ -165,7 +164,7 @@ function fetchSERPUsageANDSavedReports(query_id)
     });
 
     $("#saved-reports").empty();
-    $("#saved-reports").append(`<option>select report</option>`);
+    $("#saved-reports").append(`<option>select SERP report</option>`);
 
     fetch('/api/reports', {
         method: 'GET',
@@ -248,7 +247,7 @@ function parseResults(result)
     for(let kw=0;kw<results.keywords.length;kw++){
         let keyword = results.keywords[kw];
         $(".extracted-keywords").append(`
-            <div class="h5">${keyword.keyword}</div>
+            <div class="h5 float-left d-inline ps-1 pe-1 m-1"><u>${keyword.keyword}</u></div>
         `);
     }
 

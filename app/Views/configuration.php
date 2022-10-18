@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -20,8 +19,8 @@
 
         <div class="row mb-4 mt-3">
             <div class="col p-2">
-                <span class="h1" style="font-family: 'Kaushan Script', cursive;">
-                <a href="/"><img src="logo.png" alt=""></a>
+                <span class="h1">
+                <a href="/">Blog Post Assist</a>
                 </span>
                 <span class="float-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
                 <span class="float-end ms-3 me-3"><a href="/configuration">Settings</a></span>
