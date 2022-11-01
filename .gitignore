@@ -125,3 +125,5 @@ nb-configuration.xml
 
 app/Database/Migrations
 app/Database/Seeds
+app/Database/settings.db
+text.txt
