@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\Settings;
+use App\Models\APIkeys;
 
 class Configuration extends BaseController
 {

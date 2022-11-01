@@ -21,14 +21,29 @@
 
 <?php if($update_keys) : ?> 
     <div class="container">
+
+
+        <div class="row mb-4 mt-3">
+            <div class="col-12 p-2">
+                <span class="h1 d-block text-xs-center">
+                  <a href="/">Blog Post Assist</a>
+                </span>
+                <span class="float-md-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
+                <span class="float-md-end ms-0 ms-md-3 me-3"><a href="/configuration">Settings</a></span>
+            </div>
+        </div>
+
         <div class="row">
-            <div class="col">
-            <div class="alert alert-danger text-center">No API keys found. <a href="/configuration">Add all your API keys</a></div>
-            <ul>
-            <?php foreach($keys as $key) : ?>
-                <li> <span class="text-uppercase"><?= $key['name']; ?></span> is <?php echo ($key['key'] == "") ? "empty" : "updated"; ?></li>
-            <?php endforeach; ?>
-            </ul>
+            <div class="col mt-2">
+                <div class="alert alert-danger text-center">
+                    No API keys found. <a href="/configuration">Add all your API keys</a>
+                </div>
+
+                <ul>
+                <?php foreach($keys as $key) : ?>
+                    <li> <span class="text-uppercase"><?= $key['name']; ?></span> is <?php echo ($key['key'] == "") ? "empty" : "updated"; ?></li>
+                <?php endforeach; ?>
+                </ul>
             </div>
         </div>
     </div>
@@ -46,8 +61,7 @@
                 <span class="float-md-end ms-0 ms-md-3 me-3"><a href="/configuration">Settings</a></span>
             </div>
             <div class="col-12 d-flex p-2 flex-row-reverse">
-                <!--<a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>    
--->             <div>
+                <!--<a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>-->             <div>
                     <select id="saved-reports" class="form-control-sm m-0 p-2 fs-6">
                         <option>Select SERP Report</option>
                     </select>
