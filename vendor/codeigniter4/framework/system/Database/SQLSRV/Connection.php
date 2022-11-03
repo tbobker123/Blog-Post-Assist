@@ -96,9 +96,9 @@ class Connection extends BaseConnection
     /**
      * Connect to the database.
      *
-     * @throws DatabaseException
-     *
      * @return mixed
+     *
+     * @throws DatabaseException
      */
     public function connect(bool $persistent = false)
     {
@@ -183,13 +183,19 @@ class Connection extends BaseConnection
 
     /**
      * Generates the SQL for listing tables in a platform-dependent manner.
+     *
+     * @param string|null $tableName If $tableName is provided will return only this table if exists.
      */
-    protected function _listTables(bool $prefixLimit = false): string
+    protected function _listTables(bool $prefixLimit = false, ?string $tableName = null): string
     {
         $sql = 'SELECT [TABLE_NAME] AS "name"'
             . ' FROM [INFORMATION_SCHEMA].[TABLES] '
             . ' WHERE '
             . " [TABLE_SCHEMA] = '" . $this->schema . "'    ";
+
+        if ($tableName !== null) {
+            return $sql .= ' AND [TABLE_NAME] LIKE ' . $this->escape($tableName);
+        }
 
         if ($prefixLimit === true && $this->DBPrefix !== '') {
             $sql .= " AND [TABLE_NAME] LIKE '" . $this->escapeLikeString($this->DBPrefix) . "%' "
@@ -213,9 +219,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with index data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _indexData(string $table): array
     {
@@ -251,9 +257,9 @@ class Connection extends BaseConnection
      * Returns an array of objects with Foreign key data
      * referenced_object_id  parent_object_id
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _foreignKeyData(string $table): array
     {
@@ -319,9 +325,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with field data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _fieldData(string $table): array
     {
@@ -445,7 +451,7 @@ class Connection extends BaseConnection
     /**
      * Executes the query against the database.
      *
-     * @return mixed
+     * @return false|resource
      */
     protected function execute(string $sql)
     {

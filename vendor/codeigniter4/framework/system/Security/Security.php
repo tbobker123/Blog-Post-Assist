@@ -13,6 +13,7 @@ namespace CodeIgniter\Security;
 
 use CodeIgniter\Cookie\Cookie;
 use CodeIgniter\HTTP\IncomingRequest;
+use CodeIgniter\HTTP\Request;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\Response;
 use CodeIgniter\Security\Exceptions\SecurityException;
@@ -238,9 +239,9 @@ class Security implements SecurityInterface
     /**
      * CSRF Verify
      *
-     * @throws SecurityException
-     *
      * @return $this|false
+     *
+     * @throws SecurityException
      *
      * @deprecated Use `CodeIgniter\Security\Security::verify()` instead of using this method.
      *
@@ -278,9 +279,9 @@ class Security implements SecurityInterface
     /**
      * CSRF Verify
      *
-     * @throws SecurityException
-     *
      * @return $this
+     *
+     * @throws SecurityException
      */
     public function verify(RequestInterface $request)
     {
@@ -321,6 +322,8 @@ class Security implements SecurityInterface
      */
     private function removeTokenInRequest(RequestInterface $request): void
     {
+        assert($request instanceof Request);
+
         $json = json_decode($request->getBody() ?? '');
 
         if (isset($_POST[$this->tokenName])) {
@@ -336,6 +339,8 @@ class Security implements SecurityInterface
 
     private function getPostedToken(RequestInterface $request): ?string
     {
+        assert($request instanceof IncomingRequest);
+
         // Does the token exist in POST, HEADER or optionally php:://input - json data.
         if ($request->hasHeader($this->headerName) && ! empty($request->header($this->headerName)->getValue())) {
             $tokenName = $request->header($this->headerName)->getValue();
@@ -385,9 +390,9 @@ class Security implements SecurityInterface
      *
      * @params string $token CSRF token
      *
-     * @throws InvalidArgumentException "hex2bin(): Hexadecimal input string must have an even length"
-     *
      * @return string CSRF hash
+     *
+     * @throws InvalidArgumentException "hex2bin(): Hexadecimal input string must have an even length"
      */
     protected function derandomize(string $token): string
     {
@@ -580,6 +585,8 @@ class Security implements SecurityInterface
      */
     protected function sendCookie(RequestInterface $request)
     {
+        assert($request instanceof IncomingRequest);
+
         if ($this->cookie->isSecure() && ! $request->isSecure()) {
             return false;
         }

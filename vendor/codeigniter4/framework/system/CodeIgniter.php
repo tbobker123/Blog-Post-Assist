@@ -47,7 +47,7 @@ class CodeIgniter
     /**
      * The current version of CodeIgniter Framework
      */
-    public const CI_VERSION = '4.2.3';
+    public const CI_VERSION = '4.2.8';
 
     /**
      * App startup time.
@@ -150,6 +150,11 @@ class CodeIgniter
      * @phpstan-var 'php-cli'|'spark'|'web'
      */
     protected ?string $context = null;
+
+    /**
+     * Whether to return Response object or send response.
+     */
+    protected bool $returnResponse = false;
 
     /**
      * Constructor.
@@ -285,12 +290,14 @@ class CodeIgniter
      * tries to route the response, loads the controller and generally
      * makes all of the pieces work together.
      *
-     * @throws RedirectException
-     *
      * @return ResponseInterface|void
+     *
+     * @throws RedirectException
      */
     public function run(?RouteCollectionInterface $routes = null, bool $returnResponse = false)
     {
+        $this->returnResponse = $returnResponse;
+
         if ($this->context === null) {
             throw new LogicException('Context must be set before run() is called. If you are upgrading from 4.1.x, you need to merge `public/index.php` and `spark` file from `vendor/codeigniter4/framework`.');
         }
@@ -308,6 +315,10 @@ class CodeIgniter
 
         if ($this->request instanceof IncomingRequest && strtolower($this->request->getMethod()) === 'cli') {
             $this->response->setStatusCode(405)->setBody('Method Not Allowed');
+
+            if ($this->returnResponse) {
+                return $this->response;
+            }
 
             $this->sendResponse();
 
@@ -345,13 +356,22 @@ class CodeIgniter
             // If the route is a 'redirect' route, it throws
             // the exception with the $to as the message
             $this->response->redirect(base_url($e->getMessage()), 'auto', $e->getCode());
+
+            if ($this->returnResponse) {
+                return $this->response;
+            }
+
             $this->sendResponse();
 
             $this->callExit(EXIT_SUCCESS);
 
             return;
         } catch (PageNotFoundException $e) {
-            $this->display404errors($e);
+            $return = $this->display404errors($e);
+
+            if ($return instanceof ResponseInterface) {
+                return $return;
+            }
         }
     }
 
@@ -396,13 +416,17 @@ class CodeIgniter
     /**
      * Handles the main request logic and fires the controller.
      *
+     * @return ResponseInterface
+     *
      * @throws PageNotFoundException
      * @throws RedirectException
      *
-     * @return ResponseInterface
+     * @deprecated $returnResponse is deprecated.
      */
     protected function handleRequest(?RouteCollectionInterface $routes, Cache $cacheConfig, bool $returnResponse = false)
     {
+        $this->returnResponse = $returnResponse;
+
         $routeFilter = $this->tryToRouteIt($routes);
 
         $uri = $this->determinePath();
@@ -433,7 +457,8 @@ class CodeIgniter
 
             // If a ResponseInterface instance is returned then send it back to the client and stop
             if ($possibleResponse instanceof ResponseInterface) {
-                return $returnResponse ? $possibleResponse : $possibleResponse->pretend($this->useSafeOutput)->send();
+                return $this->returnResponse ? $possibleResponse
+                    : $possibleResponse->pretend($this->useSafeOutput)->send();
             }
 
             if ($possibleResponse instanceof Request) {
@@ -489,24 +514,30 @@ class CodeIgniter
             $this->response = $response;
         }
 
-        // Cache it without the performance metrics replaced
-        // so that we can have live speed updates along the way.
-        // Must be run after filters to preserve the Response headers.
-        if (static::$cacheTTL > 0) {
-            $this->cachePage($cacheConfig);
+        // Skip unnecessary processing for special Responses.
+        if (! $response instanceof DownloadResponse && ! $response instanceof RedirectResponse) {
+            // Cache it without the performance metrics replaced
+            // so that we can have live speed updates along the way.
+            // Must be run after filters to preserve the Response headers.
+            if (static::$cacheTTL > 0) {
+                $this->cachePage($cacheConfig);
+            }
+
+            // Update the performance metrics
+            $body = $this->response->getBody();
+            if ($body !== null) {
+                $output = $this->displayPerformanceMetrics($body);
+                $this->response->setBody($output);
+            }
+
+            // Save our current URI as the previous URI in the session
+            // for safer, more accurate use with `previous_url()` helper function.
+            $this->storePreviousURL(current_url(true));
         }
-
-        // Update the performance metrics
-        $output = $this->displayPerformanceMetrics($this->response->getBody());
-        $this->response->setBody($output);
-
-        // Save our current URI as the previous URI in the session
-        // for safer, more accurate use with `previous_url()` helper function.
-        $this->storePreviousURL(current_url(true));
 
         unset($uri);
 
-        if (! $returnResponse) {
+        if (! $this->returnResponse) {
             $this->sendResponse();
         }
 
@@ -643,9 +674,9 @@ class CodeIgniter
     /**
      * Determines if a response has been cached for the given URI.
      *
-     * @throws Exception
-     *
      * @return false|ResponseInterface
+     *
+     * @throws Exception
      */
     public function displayCache(Cache $config)
     {
@@ -723,15 +754,13 @@ class CodeIgniter
             return md5($this->request->getPath());
         }
 
-        $uri = $this->request->getUri();
+        $uri = clone $this->request->getUri();
 
-        if ($config->cacheQueryString) {
-            $name = URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), $uri->getQuery());
-        } else {
-            $name = URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath());
-        }
+        $query = $config->cacheQueryString
+            ? $uri->getQuery(is_array($config->cacheQueryString) ? ['only' => $config->cacheQueryString] : [])
+            : '';
 
-        return md5($name);
+        return md5($uri->setFragment('')->setQuery($query));
     }
 
     /**
@@ -750,9 +779,9 @@ class CodeIgniter
      * @param RouteCollectionInterface|null $routes An collection interface to use in place
      *                                              of the config file.
      *
-     * @throws RedirectException
-     *
      * @return string|string[]|null Route filters, that is, the filters specified in the routes file
+     *
+     * @throws RedirectException
      */
     protected function tryToRouteIt(?RouteCollectionInterface $routes = null)
     {
@@ -906,6 +935,8 @@ class CodeIgniter
     /**
      * Displays a 404 Page Not Found error. If set, will try to
      * call the 404Override controller/method that was set in routing config.
+     *
+     * @return ResponseInterface|void
      */
     protected function display404errors(PageNotFoundException $e)
     {
@@ -930,6 +961,10 @@ class CodeIgniter
 
             $cacheConfig = new Cache();
             $this->gatherOutput($cacheConfig, $returned);
+            if ($this->returnResponse) {
+                return $this->response;
+            }
+
             $this->sendResponse();
 
             return;
@@ -939,11 +974,9 @@ class CodeIgniter
         $this->response->setStatusCode($e->getCode());
 
         if (ENVIRONMENT !== 'testing') {
-            // @codeCoverageIgnoreStart
             if (ob_get_level() > 0) {
-                ob_end_flush();
+                ob_end_flush(); // @codeCoverageIgnore
             }
-            // @codeCoverageIgnoreEnd
         }
         // When testing, one is for phpunit, another is for test case.
         elseif (ob_get_level() > 2) {
@@ -976,8 +1009,10 @@ class CodeIgniter
 
         if ($returned instanceof DownloadResponse) {
             // Turn off output buffering completely, even if php.ini output_buffering is not off
-            while (ob_get_level() > 0) {
-                ob_end_clean();
+            if (ENVIRONMENT !== 'testing') {
+                while (ob_get_level() > 0) {
+                    ob_end_clean();
+                }
             }
 
             $this->response = $returned;

@@ -71,9 +71,9 @@ abstract class CIUnitTestCase extends TestCase
      */
     private ?array $traits = null;
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Database Properties
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Should run db migration?
@@ -134,6 +134,7 @@ abstract class CIUnitTestCase extends TestCase
      * If not present, will use the defaultGroup.
      *
      * @var string
+     * @phpstan-var non-empty-string
      */
     protected $DBGroup = 'tests';
 
@@ -147,7 +148,7 @@ abstract class CIUnitTestCase extends TestCase
     /**
      * Migration Runner instance.
      *
-     * @var MigrationRunner|mixed
+     * @var MigrationRunner|null
      */
     protected $migrations;
 
@@ -166,9 +167,9 @@ abstract class CIUnitTestCase extends TestCase
      */
     protected $insertCache = [];
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Feature Properties
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * If present, will override application
@@ -216,9 +217,9 @@ abstract class CIUnitTestCase extends TestCase
      */
     protected $requestBody = '';
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Staging
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Load the helpers.
@@ -289,9 +290,9 @@ abstract class CIUnitTestCase extends TestCase
         }
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Mocking
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Resets shared instanced for all Factories components
@@ -338,9 +339,9 @@ abstract class CIUnitTestCase extends TestCase
         Services::injectMock('session', $session);
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Assertions
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Custom function to hook into CodeIgniter's Logging mechanism
@@ -348,9 +349,9 @@ abstract class CIUnitTestCase extends TestCase
      *
      * @param string|null $expectedMessage
      *
-     * @throws Exception
-     *
      * @return bool
+     *
+     * @throws Exception
      */
     public function assertLogged(string $level, $expectedMessage = null)
     {
@@ -473,9 +474,9 @@ abstract class CIUnitTestCase extends TestCase
      * @param mixed $expected
      * @param mixed $actual
      *
-     * @throws Exception
-     *
      * @return bool|void
+     *
+     * @throws Exception
      */
     public function assertCloseEnoughString($expected, $actual, string $message = '', int $tolerance = 1)
     {
@@ -496,9 +497,9 @@ abstract class CIUnitTestCase extends TestCase
         }
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Utility
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Loads up an instance of CodeIgniter

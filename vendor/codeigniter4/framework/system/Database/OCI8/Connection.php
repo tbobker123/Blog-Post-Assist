@@ -12,7 +12,6 @@
 namespace CodeIgniter\Database\OCI8;
 
 use CodeIgniter\Database\BaseConnection;
-use CodeIgniter\Database\ConnectionInterface;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Database\Query;
 use ErrorException;
@@ -21,7 +20,7 @@ use stdClass;
 /**
  * Connection for OCI8
  */
-class Connection extends BaseConnection implements ConnectionInterface
+class Connection extends BaseConnection
 {
     /**
      * Database driver
@@ -184,7 +183,7 @@ class Connection extends BaseConnection implements ConnectionInterface
     /**
      * Executes the query against the database.
      *
-     * @return false|resource
+     * @return bool
      */
     protected function execute(string $sql)
     {
@@ -242,10 +241,16 @@ class Connection extends BaseConnection implements ConnectionInterface
 
     /**
      * Generates the SQL for listing tables in a platform-dependent manner.
+     *
+     * @param string|null $tableName If $tableName is provided will return only this table if exists.
      */
-    protected function _listTables(bool $prefixLimit = false): string
+    protected function _listTables(bool $prefixLimit = false, ?string $tableName = null): string
     {
         $sql = 'SELECT "TABLE_NAME" FROM "USER_TABLES"';
+
+        if ($tableName !== null) {
+            return $sql . ' WHERE "TABLE_NAME" LIKE ' . $this->escape($tableName);
+        }
 
         if ($prefixLimit !== false && $this->DBPrefix !== '') {
             return $sql . ' WHERE "TABLE_NAME" LIKE \'' . $this->escapeLikeString($this->DBPrefix) . "%' "
@@ -274,9 +279,9 @@ class Connection extends BaseConnection implements ConnectionInterface
     /**
      * Returns an array of objects with field data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _fieldData(string $table): array
     {
@@ -322,9 +327,9 @@ class Connection extends BaseConnection implements ConnectionInterface
     /**
      * Returns an array of objects with index data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _indexData(string $table): array
     {
@@ -371,9 +376,9 @@ class Connection extends BaseConnection implements ConnectionInterface
     /**
      * Returns an array of objects with Foreign key data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _foreignKeyData(string $table): array
     {

@@ -16,6 +16,7 @@ use CodeIgniter\Database\Exceptions\DatabaseException;
 use ErrorException;
 use Exception;
 use SQLite3;
+use SQLite3Result;
 use stdClass;
 
 /**
@@ -54,9 +55,9 @@ class Connection extends BaseConnection
     /**
      * Connect to the database.
      *
-     * @throws DatabaseException
-     *
      * @return mixed
+     *
+     * @throws DatabaseException
      */
     public function connect(bool $persistent = false)
     {
@@ -120,7 +121,7 @@ class Connection extends BaseConnection
     /**
      * Execute the query
      *
-     * @return mixed \SQLite3Result object or bool
+     * @return bool|SQLite3Result
      */
     protected function execute(string $sql)
     {
@@ -160,9 +161,17 @@ class Connection extends BaseConnection
 
     /**
      * Generates the SQL for listing tables in a platform-dependent manner.
+     *
+     * @param string|null $tableName If $tableName is provided will return only this table if exists.
      */
-    protected function _listTables(bool $prefixLimit = false): string
+    protected function _listTables(bool $prefixLimit = false, ?string $tableName = null): string
     {
+        if ($tableName !== null) {
+            return 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\''
+                   . ' AND "NAME" NOT LIKE \'sqlite!_%\' ESCAPE \'!\''
+                   . ' AND "NAME" LIKE ' . $this->escape($tableName);
+        }
+
         return 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\''
                . ' AND "NAME" NOT LIKE \'sqlite!_%\' ESCAPE \'!\''
                . (($prefixLimit !== false && $this->DBPrefix !== '')
@@ -179,9 +188,9 @@ class Connection extends BaseConnection
     }
 
     /**
-     * @throws DatabaseException
-     *
      * @return array|false
+     *
+     * @throws DatabaseException
      */
     public function getFieldNames(string $table)
     {
@@ -223,9 +232,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with field data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _fieldData(string $table): array
     {
@@ -258,9 +267,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with index data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _indexData(string $table): array
     {

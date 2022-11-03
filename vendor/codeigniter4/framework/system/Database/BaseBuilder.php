@@ -476,10 +476,10 @@ class BaseBuilder
      * @used-by selectAvg()
      * @used-by selectSum()
      *
+     * @return $this
+     *
      * @throws DatabaseException
      * @throws DataException
-     *
-     * @return $this
      */
     protected function maxMinAvgSum(string $select = '', string $alias = '', string $type = 'MAX')
     {
@@ -577,7 +577,7 @@ class BaseBuilder
     {
         $table = $this->buildSubquery($from, true, $alias);
 
-        $this->trackAliases($table);
+        $this->db->addTableAlias($alias);
         $this->QBFrom[] = $table;
 
         return $this;
@@ -888,9 +888,9 @@ class BaseBuilder
      *
      * @param array|BaseBuilder|Closure|null $values The values searched on, or anonymous function with subquery
      *
-     * @throws InvalidArgumentException
-     *
      * @return $this
+     *
+     * @throws InvalidArgumentException
      */
     protected function _whereIn(?string $key = null, $values = null, bool $not = false, string $type = 'AND ', ?bool $escape = null, string $clause = 'QBWhere')
     {
@@ -1179,7 +1179,7 @@ class BaseBuilder
      */
     protected function addUnionStatement($union, bool $all = false)
     {
-        $this->QBUnion[] = "\n" . 'UNION '
+        $this->QBUnion[] = "\nUNION "
             . ($all ? 'ALL ' : '')
             . 'SELECT * FROM '
             . $this->buildSubquery($union, true, 'uwrp' . (count($this->QBUnion) + 1));
@@ -1730,9 +1730,9 @@ class BaseBuilder
     /**
      * Compiles batch insert strings and runs the queries
      *
-     * @throws DatabaseException
-     *
      * @return false|int|string[] Number of rows inserted or FALSE on failure, SQL array when testMode
+     *
+     * @throws DatabaseException
      */
     public function insertBatch(?array $set = null, ?bool $escape = null, int $batchSize = 100)
     {
@@ -1852,9 +1852,9 @@ class BaseBuilder
     /**
      * Compiles an insert query and returns the sql
      *
-     * @throws DatabaseException
-     *
      * @return bool|string
+     *
+     * @throws DatabaseException
      */
     public function getCompiledInsert(bool $reset = true)
     {
@@ -1885,9 +1885,9 @@ class BaseBuilder
      *
      * @param array|object|null $set
      *
-     * @throws DatabaseException
-     *
      * @return bool
+     *
+     * @throws DatabaseException
      */
     public function insert($set = null, ?bool $escape = null)
     {
@@ -1928,6 +1928,7 @@ class BaseBuilder
      * @internal This is a temporary solution.
      *
      * @see https://github.com/codeigniter4/CodeIgniter4/pull/5376
+     *
      * @TODO Fix a root cause, and this method should be removed.
      */
     protected function removeAlias(string $from): string
@@ -1974,9 +1975,9 @@ class BaseBuilder
     /**
      * Compiles a replace into string and runs the query
      *
-     * @throws DatabaseException
-     *
      * @return BaseResult|false|Query|string
+     *
+     * @throws DatabaseException
      */
     public function replace(?array $set = null)
     {
@@ -2130,9 +2131,9 @@ class BaseBuilder
     /**
      * Compiles an update string and runs the query
      *
-     * @throws DatabaseException
-     *
      * @return false|int|string[] Number of rows affected or FALSE on failure, SQL array when testMode
+     *
+     * @throws DatabaseException
      */
     public function updateBatch(?array $set = null, ?string $index = null, int $batchSize = 100)
     {
@@ -2241,9 +2242,9 @@ class BaseBuilder
      *
      * @param array|object $key
      *
-     * @throws DatabaseException
-     *
      * @return $this|null
+     *
+     * @throws DatabaseException
      */
     public function setUpdateBatch($key, string $index = '', ?bool $escape = null)
     {
@@ -2349,9 +2350,9 @@ class BaseBuilder
      *
      * @param mixed $where
      *
-     * @throws DatabaseException
+     * @return bool|string Returns a string if in test mode.
      *
-     * @return bool|string
+     * @throws DatabaseException
      */
     public function delete($where = '', ?int $limit = null, bool $resetData = true)
     {
@@ -2705,8 +2706,7 @@ class BaseBuilder
         $array = [];
 
         foreach (get_object_vars($object) as $key => $val) {
-            // There are some built in keys we need to ignore for this conversion
-            if (! is_object($val) && ! is_array($val) && $key !== '_parent_name') {
+            if (! is_object($val) && ! is_array($val)) {
                 $array[$key] = $val;
             }
         }
@@ -2732,13 +2732,10 @@ class BaseBuilder
         $fields = array_keys($out);
 
         foreach ($fields as $val) {
-            // There are some built in keys we need to ignore for this conversion
-            if ($val !== '_parent_name') {
-                $i = 0;
+            $i = 0;
 
-                foreach ($out[$val] as $data) {
-                    $array[$i++][$val] = $data;
-                }
+            foreach ($out[$val] as $data) {
+                $array[$i++][$val] = $data;
             }
         }
 
@@ -2952,7 +2949,7 @@ class BaseBuilder
             throw new DatabaseException('The subquery cannot be the same object as the main query object.');
         }
 
-        $subquery = strtr($builder->getCompiledSelect(), "\n", ' ');
+        $subquery = strtr($builder->getCompiledSelect(false), "\n", ' ');
 
         if ($wrapped) {
             $subquery = '(' . $subquery . ')';

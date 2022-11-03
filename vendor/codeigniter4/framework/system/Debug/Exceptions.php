@@ -20,6 +20,7 @@ use CodeIgniter\HTTP\Response;
 use Config\Exceptions as ExceptionsConfig;
 use Config\Paths;
 use ErrorException;
+use Psr\Log\LogLevel;
 use Throwable;
 
 /**
@@ -141,11 +142,9 @@ class Exceptions
     }
 
     /**
-     * Even in PHP7, some errors make it through to the errorHandler, so
-     * convert these to Exceptions and let the exception handler log it and
-     * display it.
+     * The callback to be registered to `set_error_handler()`.
      *
-     * This seems to be primarily when a user triggers it with trigger_error().
+     * @return bool
      *
      * @throws ErrorException
      *
@@ -153,11 +152,45 @@ class Exceptions
      */
     public function errorHandler(int $severity, string $message, ?string $file = null, ?int $line = null)
     {
-        if (! (error_reporting() & $severity)) {
-            return;
+        if (error_reporting() & $severity) {
+            // @TODO Remove if Faker is fixed.
+            if ($this->isFakerDeprecationError($severity, $message, $file, $line)) {
+                // Ignore the error.
+                return true;
+            }
+
+            throw new ErrorException($message, 0, $severity, $file, $line);
         }
 
-        throw new ErrorException($message, 0, $severity, $file, $line);
+        return false; // return false to propagate the error to PHP standard error handler
+    }
+
+    /**
+     * Workaround for Faker deprecation errors in PHP 8.2.
+     *
+     * @see https://github.com/FakerPHP/Faker/issues/479
+     */
+    private function isFakerDeprecationError(int $severity, string $message, ?string $file = null, ?int $line = null)
+    {
+        if (
+            $severity === E_DEPRECATED
+            && strpos($file, VENDORPATH . 'fakerphp/faker/') !== false
+            && $message === 'Use of "static" in callables is deprecated'
+        ) {
+            log_message(
+                LogLevel::WARNING,
+                '[DEPRECATED] {message} in {errFile} on line {errLine}.',
+                [
+                    'message' => $message,
+                    'errFile' => clean_path($file ?? ''),
+                    'errLine' => $line ?? 0,
+                ]
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -177,7 +210,7 @@ class Exceptions
         ['type' => $type, 'message' => $message, 'file' => $file, 'line' => $line] = $error;
 
         if (in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE], true)) {
-            $this->exceptionHandler(new ErrorException($message, $type, 0, $file, $line));
+            $this->exceptionHandler(new ErrorException($message, 0, $type, $file, $line));
         }
     }
 
@@ -329,9 +362,9 @@ class Exceptions
         return [$statusCode, $exitStatus];
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Display Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * This makes nicer looking paths for the error output.

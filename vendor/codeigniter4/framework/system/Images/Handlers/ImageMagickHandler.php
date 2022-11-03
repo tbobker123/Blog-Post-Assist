@@ -41,20 +41,17 @@ class ImageMagickHandler extends BaseHandler
     {
         parent::__construct($config);
 
-        // We should never see this, so can't test it
-        // @codeCoverageIgnoreStart
         if (! (extension_loaded('imagick') || class_exists(Imagick::class))) {
-            throw ImageException::forMissingExtension('IMAGICK');
+            throw ImageException::forMissingExtension('IMAGICK'); // @codeCoverageIgnore
         }
-        // @codeCoverageIgnoreEnd
     }
 
     /**
      * Handles the actual resizing of the image.
      *
-     * @throws Exception
-     *
      * @return ImageMagickHandler
+     *
+     * @throws Exception
      */
     public function _resize(bool $maintainRatio = false)
     {
@@ -79,9 +76,9 @@ class ImageMagickHandler extends BaseHandler
     /**
      * Crops the image.
      *
-     * @throws Exception
-     *
      * @return bool|\CodeIgniter\Images\Handlers\ImageMagickHandler
+     *
+     * @throws Exception
      */
     public function _crop()
     {
@@ -104,9 +101,9 @@ class ImageMagickHandler extends BaseHandler
      * Handles the rotation of an image resource.
      * Doesn't save the image, but replaces the current resource.
      *
-     * @throws Exception
-     *
      * @return $this
+     *
+     * @throws Exception
      */
     protected function _rotate(int $angle)
     {
@@ -125,9 +122,9 @@ class ImageMagickHandler extends BaseHandler
     /**
      * Flattens transparencies, default white background
      *
-     * @throws Exception
-     *
      * @return $this
+     *
+     * @throws Exception
      */
     protected function _flatten(int $red = 255, int $green = 255, int $blue = 255)
     {
@@ -146,9 +143,9 @@ class ImageMagickHandler extends BaseHandler
     /**
      * Flips an image along it's vertical or horizontal axis.
      *
-     * @throws Exception
-     *
      * @return $this
+     *
+     * @throws Exception
      */
     protected function _flip(string $direction)
     {
@@ -180,9 +177,9 @@ class ImageMagickHandler extends BaseHandler
     /**
      * Handles all of the grunt work of resizing, etc.
      *
-     * @throws Exception
-     *
      * @return array Lines of output from shell command
+     *
+     * @throws Exception
      */
     protected function process(string $action, int $quality = 100): array
     {
@@ -269,9 +266,9 @@ class ImageMagickHandler extends BaseHandler
      * To ensure we can use all features, like transparency,
      * during the process, we'll use a PNG as the temp file type.
      *
-     * @throws Exception
-     *
      * @return string
+     *
+     * @throws Exception
      */
     protected function getResourcePath()
     {

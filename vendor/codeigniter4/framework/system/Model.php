@@ -40,6 +40,7 @@ use ReflectionProperty;
  *
  * @property BaseConnection $db
  *
+ * @method $this groupBy($by, ?bool $escape = null)
  * @method $this havingIn(?string $key = null, $values = null, ?bool $escape = null)
  * @method $this havingLike($field, string $match = '', string $side = 'both', ?bool $escape = null, bool $insensitiveSearch = false)
  * @method $this havingNotIn(?string $key = null, $values = null, ?bool $escape = null)
@@ -346,9 +347,9 @@ class Model extends BaseModel
      * @param int         $batchSize The size of the batch to run
      * @param bool        $returnSQL True means SQL is returned, false will execute the query
      *
-     * @throws DatabaseException
-     *
      * @return mixed Number of rows affected or FALSE on failure
+     *
+     * @throws DatabaseException
      */
     protected function doUpdateBatch(?array $set = null, ?string $index = null, int $batchSize = 100, bool $returnSQL = false)
     {
@@ -363,9 +364,9 @@ class Model extends BaseModel
      * @param array|int|string|null $id    The rows primary key(s)
      * @param bool                  $purge Allows overriding the soft deletes setting.
      *
-     * @throws DatabaseException
-     *
      * @return bool|string
+     *
+     * @throws DatabaseException
      */
     protected function doDelete($id = null, bool $purge = false)
     {
@@ -405,7 +406,7 @@ class Model extends BaseModel
      * through soft deletes (deleted = 1)
      * This methods works only with dbCalls
      *
-     * @return bool|mixed
+     * @return bool|string Returns a string if in test mode.
      */
     protected function doPurgeDeleted()
     {
@@ -553,9 +554,9 @@ class Model extends BaseModel
     /**
      * Provides a shared instance of the Query Builder.
      *
-     * @throws ModelException
-     *
      * @return BaseBuilder
+     *
+     * @throws ModelException
      */
     public function builder(?string $table = null)
     {
@@ -645,15 +646,15 @@ class Model extends BaseModel
      * @param array|object|null $data
      * @param bool              $returnID Whether insert ID should be returned or not.
      *
-     * @throws ReflectionException
-     *
      * @return BaseResult|false|int|object|string
+     *
+     * @throws ReflectionException
      */
     public function insert($data = null, bool $returnID = true)
     {
         if (! empty($this->tempData['data'])) {
             if (empty($data)) {
-                $data = $this->tempData['data'] ?? null;
+                $data = $this->tempData['data'];
             } else {
                 $data = $this->transformDataToArray($data, 'insert');
                 $data = array_merge($this->tempData['data'], $data);
@@ -679,7 +680,7 @@ class Model extends BaseModel
     {
         if (! empty($this->tempData['data'])) {
             if (empty($data)) {
-                $data = $this->tempData['data'] ?? null;
+                $data = $this->tempData['data'];
             } else {
                 $data = $this->transformDataToArray($data, 'update');
                 $data = array_merge($this->tempData['data'], $data);
@@ -699,9 +700,9 @@ class Model extends BaseModel
      * @param object|string $data
      * @param bool          $recursive If true, inner entities will be casted as array as well
      *
-     * @throws ReflectionException
-     *
      * @return array|null Array
+     *
+     * @throws ReflectionException
      */
     protected function objectToRawArray($data, bool $onlyChanged = true, bool $recursive = false): ?array
     {

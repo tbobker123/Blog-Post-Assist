@@ -74,8 +74,8 @@ if (! function_exists('site_url')) {
     /**
      * Returns a site URL as defined by the App config.
      *
-     * @param mixed    $relativePath URI string or array of URI segments
-     * @param App|null $config       Alternate configuration to use
+     * @param array|string $relativePath URI string or array of URI segments
+     * @param App|null     $config       Alternate configuration to use
      */
     function site_url($relativePath = '', ?string $scheme = null, ?App $config = null): string
     {
@@ -95,8 +95,7 @@ if (! function_exists('base_url')) {
      * Returns the base URL as defined by the App config.
      * Base URLs are trimmed site URLs without the index page.
      *
-     * @param mixed  $relativePath URI string or array of URI segments
-     * @param string $scheme
+     * @param array|string $relativePath URI string or array of URI segments
      */
     function base_url($relativePath = '', ?string $scheme = null): string
     {
@@ -143,7 +142,7 @@ if (! function_exists('previous_url')) {
      * If that's not available, however, we'll use a sanitized url from $_SERVER['HTTP_REFERER']
      * which can be set by the user so is untrusted and not set by certain browsers/servers.
      *
-     * @return mixed|string|URI
+     * @return string|URI
      */
     function previous_url(bool $returnObject = false)
     {
@@ -197,10 +196,10 @@ if (! function_exists('anchor')) {
      *
      * Creates an anchor based on the local URL.
      *
-     * @param mixed    $uri        URI string or array of URI segments
-     * @param string   $title      The link title
-     * @param mixed    $attributes Any attributes
-     * @param App|null $altConfig  Alternate configuration to use
+     * @param array|string        $uri        URI string or array of URI segments
+     * @param string              $title      The link title
+     * @param array|object|string $attributes Any attributes
+     * @param App|null            $altConfig  Alternate configuration to use
      */
     function anchor($uri = '', string $title = '', $attributes = '', ?App $altConfig = null): string
     {
@@ -230,10 +229,10 @@ if (! function_exists('anchor_popup')) {
      * Creates an anchor based on the local URL. The link
      * opens a new window based on the attributes specified.
      *
-     * @param string   $uri        the URL
-     * @param string   $title      the link title
-     * @param mixed    $attributes any attributes
-     * @param App|null $altConfig  Alternate configuration to use
+     * @param string                    $uri        the URL
+     * @param string                    $title      the link title
+     * @param array|false|object|string $attributes any attributes
+     * @param App|null                  $altConfig  Alternate configuration to use
      */
     function anchor_popup($uri = '', string $title = '', $attributes = false, ?App $altConfig = null): string
     {
@@ -280,9 +279,9 @@ if (! function_exists('mailto')) {
     /**
      * Mailto Link
      *
-     * @param string $email      the email address
-     * @param string $title      the link title
-     * @param mixed  $attributes any attributes
+     * @param string              $email      the email address
+     * @param string              $title      the link title
+     * @param array|object|string $attributes any attributes
      */
     function mailto(string $email, string $title = '', $attributes = ''): string
     {
@@ -300,9 +299,9 @@ if (! function_exists('safe_mailto')) {
      *
      * Create a spam-protected mailto link written in Javascript
      *
-     * @param string $email      the email address
-     * @param string $title      the link title
-     * @param mixed  $attributes any attributes
+     * @param string              $email      the email address
+     * @param string              $title      the link title
+     * @param array|object|string $attributes any attributes
      */
     function safe_mailto(string $email, string $title = '', $attributes = ''): string
     {
@@ -369,7 +368,9 @@ if (! function_exists('safe_mailto')) {
         $x = array_reverse($x);
 
         // improve obfuscation by eliminating newlines & whitespace
-        $output = '<script type="text/javascript">'
+        $cspNonce = csp_script_nonce();
+        $cspNonce = $cspNonce ? ' ' . $cspNonce : $cspNonce;
+        $output   = '<script type="text/javascript"' . $cspNonce . '>'
                 . 'var l=new Array();';
 
         foreach ($x as $i => $value) {
@@ -553,7 +554,7 @@ if (! function_exists('url_is')) {
      * which will allow any valid character.
      *
      * Example:
-     *   if (url_is('admin*)) ...
+     *   if (url_is('admin*')) ...
      */
     function url_is(string $path): bool
     {

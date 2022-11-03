@@ -1,6 +1,8 @@
 {
     "name": "codeigniter4/appstarter",
     "type": "project",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "description": "CodeIgniter4 starter app",
     "homepage": "https://codeigniter.com",
     "license": "MIT",
@@ -8,7 +10,8 @@
         "php": "^7.4 || ^8.0",
         "codeigniter4/framework": "^4.0",
         "orhanerday/open-ai": "^2.1",
-        "voku/simple_html_dom": "^4.8"
+        "voku/simple_html_dom": "^4.8",
+        "codeigniter4/shield": "dev-develop"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9",

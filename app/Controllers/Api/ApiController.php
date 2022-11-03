@@ -25,7 +25,7 @@ class ApiController extends ResourceController
         $this->apikeys = new APIKeys();
         $this->blogdrafts = new SaveBlogPost();
 
-        $this->query = $this->settings->find(0);
+        $this->query = $this->settings->where('user_id', 1)->first();
      }
 
     public function index()

@@ -42,6 +42,8 @@ $routes->get('/logout', 'Auth::Logout');
 
 $routes->post('/auth/login', 'Auth::Login');
 
+service('auth')->routes($routes);
+
 $routes->group('', ['filter' => 'AuthCheck'], function($routes){
     $routes->get('/dashboard', 'Dashboard::Index');
     $routes->get('/configuration', 'Configuration::Index');

@@ -350,8 +350,6 @@ class Toolbar
      *
      * @param RequestInterface  $request
      * @param ResponseInterface $response
-     *
-     * @global \CodeIgniter\CodeIgniter $app
      */
     public function prepare(?RequestInterface $request = null, ?ResponseInterface $response = null)
     {
@@ -360,7 +358,7 @@ class Toolbar
          * @var Response|null        $response
          */
         if (CI_DEBUG && ! is_cli()) {
-            global $app;
+            $app = Services::codeigniter();
 
             $request ??= Services::request();
             $response ??= Services::response();
@@ -388,7 +386,7 @@ class Toolbar
                 mkdir(WRITEPATH . 'debugbar', 0777);
             }
 
-            write_file(WRITEPATH . 'debugbar/' . 'debugbar_' . $time . '.json', $data, 'w+');
+            write_file(WRITEPATH . 'debugbar/debugbar_' . $time . '.json', $data, 'w+');
 
             $format = $response->getHeaderLine('content-type');
 

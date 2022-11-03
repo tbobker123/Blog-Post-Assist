@@ -17,7 +17,6 @@ use Config\App;
 use Config\Cookie as CookieConfig;
 use Config\Services;
 use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
 use SessionHandlerInterface;
 
 /**
@@ -25,6 +24,8 @@ use SessionHandlerInterface;
  *
  * Session configuration is done through session variables and cookie related
  * variables in app/config/App.php
+ *
+ * @property string $session_id
  */
 class Session implements SessionInterface
 {
@@ -153,13 +154,6 @@ class Session implements SessionInterface
      * @var string
      */
     protected $sidRegexp;
-
-    /**
-     * Logger instance to record error messages and warnings.
-     *
-     * @var LoggerInterface
-     */
-    protected $logger;
 
     /**
      * Constructor.
@@ -487,7 +481,7 @@ class Session implements SessionInterface
      *
      * @param string|null $key Identifier of the session property to retrieve
      *
-     * @return mixed The property value(s)
+     * @return array|bool|float|int|object|string|null The property value(s)
      */
     public function get(?string $key = null)
     {
