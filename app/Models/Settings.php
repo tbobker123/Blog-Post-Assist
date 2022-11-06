@@ -18,7 +18,8 @@ class Settings extends Model
         'openAI_section',
         'openAI_outline',
         'openAI_topic',
-        'serp'
+        'serp',
+        'user_id',
     ];
 
     // Dates

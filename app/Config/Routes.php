@@ -37,18 +37,19 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::Index');
+
+/*
 $routes->get('/auth', 'Auth::Index');
 $routes->get('/logout', 'Auth::Logout');
-
 $routes->post('/auth/login', 'Auth::Login');
+*/
+
 
 service('auth')->routes($routes);
 
-$routes->group('', ['filter' => 'AuthCheck'], function($routes){
-    $routes->get('/dashboard', 'Dashboard::Index');
-    $routes->get('/configuration', 'Configuration::Index');
-    $routes->post('/configuration/update', 'Configuration::Update');
-});
+$routes->get('/dashboard', 'Dashboard::Index', ['filter' => 'AuthCheck']);
+$routes->get('/configuration', 'Configuration::Index', ['filter' => 'AuthCheck']);
+$routes->post('/configuration/update', 'Configuration::Update', ['filter' => 'AuthCheck']);
 
 $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes){
 

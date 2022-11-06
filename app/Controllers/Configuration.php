@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\Settings;
 use App\Models\APIkeys;
+use Codeigniter\Shield\Models\UserModel;
 
 class Configuration extends BaseController
 {
+	private $settings;
+	private $apikeys;
     
 	public function __construct(){
 
@@ -18,8 +21,19 @@ class Configuration extends BaseController
 
 	public function index()
     {
-    	$data['settings'] = $this->settings->findAll();
-		$data['apikeys'] = $this->apikeys->findAll();
+    	$data['settings'] = $this->settings->where('user_id', auth()->id())->first() ?? "";
+		$data['apikeys'] = $this->apikeys->where('user_id', auth()->id())->findAll() ?? "";
+
+		if(auth()->loggedIn())
+        {
+            $user = new UserModel();
+            $username = $user->find(auth()->id())->username;
+            $data['username'] = $username;
+            $data['login_register'] = false;
+        } else {
+            $data['username'] = 'Guest';
+            $data['login_register'] = true;
+        }
 
 		//echo "<pre>"; print_r($data['apikeys']); echo "</pre>"; exit;
 		return view('configuration', $data);

@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\Queries;
 use App\Models\APIKeys;
+use Codeigniter\Shield\Models\UserModel;
 
 class Dashboard extends BaseController
 {
+    private $apikeys;
+    private $saveSERP;
     
      /**
      * Return an array of resource objects, themselves in array format
@@ -22,7 +25,7 @@ class Dashboard extends BaseController
     
     public function index()
     {
-        $keys = $this->apikeys->findAll();
+        $keys = $this->apikeys->where('user_id', auth()->id())->findAll();
         
         $data['update_keys'] = false;
         $data['keys'] = $keys;
@@ -33,7 +36,24 @@ class Dashboard extends BaseController
             }
         }
         $data['tinymce_key'] = $this->apikeys->where('name', 'tinymce')->first()['key'];
+
+        if(auth()->loggedIn())
+        {
+            $user = new UserModel();
+            $username = $user->find(auth()->id())->username;
+            $data['username'] = $username;
+            $data['login_register'] = false;
+        } else {
+            $data['username'] = 'Guest';
+            $data['login_register'] = true;
+        }
+
+
         return view('dashboard', $data);
+    }
+
+    public function listSavedQueries(){
+        
     }
 }
 

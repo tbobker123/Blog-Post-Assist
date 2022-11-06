@@ -42,9 +42,9 @@ class Auth extends ShieldAuth
      * override the `getUrl()` method to apply any logic you may need.
      */
     public array $redirects = [
-        'register' => '/',
+        'register' => '/dashboard',
         'login'    => '/',
-        'logout'   => 'login',
+        'logout'   => '/',
     ];
 
     /**
@@ -223,7 +223,7 @@ class Auth extends ShieldAuth
      */
     public array $validFields = [
         'email',
-        // 'username',
+        'username',
     ];
 
     /**

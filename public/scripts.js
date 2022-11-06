@@ -141,7 +141,7 @@ function updateBlogPostId(id){
     }
 }
 
-function fetchSERPUsageANDSavedReports(query_id)
+function fetchSERPUsageANDSavedReports(query_id='')
 {
 
     fetch('/api/serp', {
@@ -279,7 +279,7 @@ function fetchSERPResults(query){
     $("#related-questions").empty();
     $(".extracted-keywords").empty();
     $("#top-title").empty();
-    $("#loading").html("loading...");
+    $("#searchbtn").text("loading...");
 
     const query_id = query.query_id ?? null;
 
@@ -297,12 +297,12 @@ function fetchSERPResults(query){
         $("#loading").html("");
         fetchSERPUsageANDSavedReports(query_id);
         $(".hide-until-results").show();
-        $("#loading").empty();
+        $("#searchbtn").text("Search");
         updateCSRFHash(data.csrf_hash);
     }).catch((error) => {
         console.log(error);
         alert(error);
-        $("#loading").empty();
+        $("#searchbtn").text("Search");
       });;
 }
 
@@ -327,7 +327,7 @@ $(document).ready(function() {
         if(ID == "select"){
             alert("Select a type");
             return;
-        }
+        }   
     
         const endpoint = ID.split("-")[2];
     
@@ -429,7 +429,6 @@ $(document).ready(function() {
             updateCSRFHash(data.csrf_hash);
             alert(data.status);
             console.log(data);
-            window.location.reload();
         });
 
     });

@@ -17,18 +17,11 @@
 
     <div class="container">
 
-        <div class="row mb-4 mt-3">
-            <div class="col p-2">
-                <span class="h1">
-                <a href="/">Blog Post Assist</a>
-                </span>
-                <span class="float-end"><a href="/logout">Logout</a> <?=session()->get('username');?></span>
-                <span class="float-end ms-3 me-3"><a href="/configuration">Settings</a></span>
-                <span class="float-end ms-3 me-3"><a href="/">Dashboard</a></span>
-            </div>
+        <div class="row">
+            <?php echo view('sections/header.php'); ?>
         </div>
 
-        <div class="container">
+        <div class="container mt-5">
           <div class="row">
             <div class="col-md-8 offset-2 mt-3">
                 <h2>Settings</h2>
@@ -50,17 +43,17 @@
                 <h4>Prompts</h4>
                 <div class="mb-3">
                     <label for="exampleFormControlInput1" class="form-label">Blog Post Topics</label>
-                    <input type="text" name="topic" class="form-control" id="blog-post-topics-config" value="<?=$settings[0]['openAI_topic']?>">
+                    <input type="text" name="topic" class="form-control" id="blog-post-topics-config" value="<?=$settings['openAI_topic']?>">
                 </div>
 
                 <div class="mb-3">
                     <label for="exampleFormControlInput1" class="form-label">Blog Post Outline</label>
-                    <input type="text" name="outline" class="form-control" id="blog-post-outline-config" value="<?=$settings[0]['openAI_outline']?>">
+                    <input type="text" name="outline" class="form-control" id="blog-post-outline-config" value="<?=$settings['openAI_outline']?>">
                 </div>
 
                 <div class="mb-3">
                     <label for="exampleFormControlInput1" class="form-label">Blog Post Section</label>
-                    <input type="text" name="section" class="form-control" id="blog-post-section-config" value="<?=$settings[0]['openAI_section']?>">
+                    <input type="text" name="section" class="form-control" id="blog-post-section-config" value="<?=$settings['openAI_section']?>">
                 </div>
 
                 <h4>Update API Keys</h4>
@@ -79,7 +72,7 @@
 
                 <div class="mb-3">
                     <label for="exampleFormControlInput1" class="form-label">SERP Results</label>
-                    <input type="text" name="serp" class="form-control" id="serp-results-config" value="<?=$settings[0]['serp']?>">
+                    <input type="text" name="serp" class="form-control" id="serp-results-config" value="<?=$settings['serp']?>">
                 </div>
 
                 <div class="mb-3">
@@ -91,6 +84,8 @@
             </div>
           </div>
           </div>
+
+          <?php echo view('sections/footer.php'); ?>
 
 </body>
 </html>
