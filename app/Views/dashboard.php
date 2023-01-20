@@ -61,7 +61,6 @@
                 <span class="float-md-end ms-0 ms-md-3 me-3"><a href="/configuration">Settings</a></span>
             </div>
             <div class="col-12 d-flex p-2 flex-row-reverse">
-                <!--<a href="https://join.slack.com/t/flipsnap-net/shared_invite/zt-1hbmkqtqp-rg4_GlBF3fmMc7xifCKAqQ" target="_blank">Join the Slack channel for support and chatter</a>-->             <div>
                     <select id="saved-reports" class="form-control-sm m-0 p-2 fs-6">
                         <option>Select SERP Report</option>
                     </select>
