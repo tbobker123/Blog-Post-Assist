@@ -14,6 +14,7 @@ namespace CodeIgniter\Test;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\I18n\Time;
 use Config\Services;
 use Exception;
 use PHPUnit\Framework\Constraint\IsEqual;
@@ -28,6 +29,8 @@ use PHPUnit\Framework\TestCase;
  * @no-final
  *
  * @internal
+ *
+ * @mixin DOMParser
  */
 class TestResponse extends TestCase
 {
@@ -60,9 +63,9 @@ class TestResponse extends TestCase
         $this->setResponse($response);
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Getters / Setters
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Sets the request.
@@ -114,9 +117,9 @@ class TestResponse extends TestCase
         return $this->response;
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Status Checks
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Boils down the possible responses into a boolean valid/not-valid
@@ -165,9 +168,9 @@ class TestResponse extends TestCase
         $this->assertFalse($this->isOK(), "{$this->response->getStatusCode()} is an unexpected successful status code, or the Response has body content.");
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Redirection
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Returns whether or not the Response was a redirect or RedirectResponse
@@ -239,9 +242,9 @@ class TestResponse extends TestCase
         return null;
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Session
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Asserts that an SESSION key has been set and, optionally, test it's value.
@@ -275,9 +278,9 @@ class TestResponse extends TestCase
         $this->assertArrayNotHasKey($key, $_SESSION, "'{$key}' should not be present in \$_SESSION.");
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Headers
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Asserts that the Response contains a specific header.
@@ -305,9 +308,9 @@ class TestResponse extends TestCase
         $this->assertFalse($this->response->hasHeader($key), "'{$key}' should not be in the Response headers.");
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Cookies
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Asserts that the response has the specified cookie.
@@ -337,17 +340,17 @@ class TestResponse extends TestCase
     public function assertCookieExpired(string $key, string $prefix = '')
     {
         $this->assertTrue($this->response->hasCookie($key, null, $prefix));
-        $this->assertGreaterThan(time(), $this->response->getCookie($key, $prefix)->getExpiresTimestamp());
+        $this->assertGreaterThan(Time::now()->getTimestamp(), $this->response->getCookie($key, $prefix)->getExpiresTimestamp());
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // JSON
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Returns the response's body as JSON
      *
-     * @return false|mixed
+     * @return false|string|null
      */
     public function getJSON()
     {
@@ -401,9 +404,9 @@ class TestResponse extends TestCase
         $this->assertJsonStringEqualsJsonString($test, $json, 'Response does not contain matching JSON.');
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // XML Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Returns the response' body as XML
@@ -415,9 +418,9 @@ class TestResponse extends TestCase
         return $this->response->getXML();
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // DomParser
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Assert that the desired text can be found in the result body.

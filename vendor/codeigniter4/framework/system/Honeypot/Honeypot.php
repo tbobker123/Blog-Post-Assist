@@ -12,6 +12,7 @@
 namespace CodeIgniter\Honeypot;
 
 use CodeIgniter\Honeypot\Exceptions\HoneypotException;
+use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Config\Honeypot as HoneypotConfig;
@@ -45,6 +46,8 @@ class Honeypot
             $this->config->container = '<div style="display:none">{template}</div>';
         }
 
+        $this->config->containerId ??= 'hpc';
+
         if ($this->config->template === '') {
             throw HoneypotException::forNoTemplate();
         }
@@ -59,6 +62,8 @@ class Honeypot
      */
     public function hasContent(RequestInterface $request)
     {
+        assert($request instanceof IncomingRequest);
+
         return ! empty($request->getPost($this->config->name));
     }
 
@@ -67,10 +72,26 @@ class Honeypot
      */
     public function attachHoneypot(ResponseInterface $response)
     {
+        if ($response->getCSP()->enabled()) {
+            // Add id attribute to the container tag.
+            $this->config->container = str_ireplace(
+                '>{template}',
+                ' id="' . $this->config->containerId . '">{template}',
+                $this->config->container
+            );
+        }
+
         $prepField = $this->prepareTemplate($this->config->template);
 
         $body = $response->getBody();
         $body = str_ireplace('</form>', $prepField . '</form>', $body);
+
+        if ($response->getCSP()->enabled()) {
+            // Add style tag for the container tag in the head tag.
+            $style = '<style ' . csp_style_nonce() . '>#' . $this->config->containerId . ' { display:none }</style>';
+            $body  = str_ireplace('</head>', $style . '</head>', $body);
+        }
+
         $response->setBody($body);
     }
 

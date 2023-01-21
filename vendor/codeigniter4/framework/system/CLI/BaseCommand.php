@@ -97,15 +97,17 @@ abstract class BaseCommand
      * Actually execute a command.
      *
      * @param array<int|string, string|null> $params
+     *
+     * @return int|void
      */
     abstract public function run(array $params);
 
     /**
      * Can be used by a command to run other commands.
      *
-     * @throws ReflectionException
-     *
      * @return mixed
+     *
+     * @throws ReflectionException
      */
     protected function call(string $command, array $params = [])
     {
@@ -119,8 +121,9 @@ abstract class BaseCommand
     {
         $exception = $e;
         $message   = $e->getMessage();
+        $config    = config('Exceptions');
 
-        require APPPATH . 'Views/errors/cli/error_exception.php';
+        require $config->errorViewPath . '/cli/error_exception.php';
     }
 
     /**

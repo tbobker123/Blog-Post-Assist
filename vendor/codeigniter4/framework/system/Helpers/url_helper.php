@@ -9,6 +9,8 @@
  * the LICENSE file that was distributed with this source code.
  */
 
+use CodeIgniter\HTTP\CLIRequest;
+use CodeIgniter\HTTP\Exceptions\HTTPException;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\URI;
 use CodeIgniter\Router\Exceptions\RouterException;
@@ -19,14 +21,15 @@ use Config\Services;
 
 if (! function_exists('_get_uri')) {
     /**
-     * Used by the other URL functions to build a
-     * framework-specific URI based on the App config.
+     * Used by the other URL functions to build a framework-specific URI
+     * based on $request->getUri()->getBaseURL() and the App config.
      *
-     * @internal Outside of the framework this should not be used directly.
+     * @internal Outside the framework this should not be used directly.
      *
      * @param string $relativePath May include queries or fragments
      *
-     * @throws InvalidArgumentException For invalid paths or config
+     * @throws HTTPException            For invalid paths.
+     * @throws InvalidArgumentException For invalid config.
      */
     function _get_uri(string $relativePath = '', ?App $config = null): URI
     {
@@ -37,15 +40,26 @@ if (! function_exists('_get_uri')) {
         }
 
         // If a full URI was passed then convert it
-        if (is_int(strpos($relativePath, '://'))) {
+        if (strpos($relativePath, '://') !== false) {
             $full         = new URI($relativePath);
-            $relativePath = URI::createURIString(null, null, $full->getPath(), $full->getQuery(), $full->getFragment());
+            $relativePath = URI::createURIString(
+                null,
+                null,
+                $full->getPath(),
+                $full->getQuery(),
+                $full->getFragment()
+            );
         }
 
         $relativePath = URI::removeDotSegments($relativePath);
 
         // Build the full URL based on $config and $relativePath
-        $url = rtrim($config->baseURL, '/ ') . '/';
+        $request = Services::request();
+
+        /** @var App $config */
+        $url = $request instanceof CLIRequest
+            ? rtrim($config->baseURL, '/ ') . '/'
+            : $request->getUri()->getBaseURL();
 
         // Check for an index page
         if ($config->indexPage !== '') {
@@ -74,8 +88,9 @@ if (! function_exists('site_url')) {
     /**
      * Returns a site URL as defined by the App config.
      *
-     * @param mixed    $relativePath URI string or array of URI segments
-     * @param App|null $config       Alternate configuration to use
+     * @param array|string $relativePath URI string or array of URI segments
+     * @param string|null  $scheme       URI scheme. E.g., http, ftp
+     * @param App|null     $config       Alternate configuration to use
      */
     function site_url($relativePath = '', ?string $scheme = null, ?App $config = null): string
     {
@@ -86,7 +101,13 @@ if (! function_exists('site_url')) {
 
         $uri = _get_uri($relativePath, $config);
 
-        return URI::createURIString($scheme ?? $uri->getScheme(), $uri->getAuthority(), $uri->getPath(), $uri->getQuery(), $uri->getFragment());
+        return URI::createURIString(
+            $scheme ?? $uri->getScheme(),
+            $uri->getAuthority(),
+            $uri->getPath(),
+            $uri->getQuery(),
+            $uri->getFragment()
+        );
     }
 }
 
@@ -95,8 +116,8 @@ if (! function_exists('base_url')) {
      * Returns the base URL as defined by the App config.
      * Base URLs are trimmed site URLs without the index page.
      *
-     * @param mixed  $relativePath URI string or array of URI segments
-     * @param string $scheme
+     * @param array|string $relativePath URI string or array of URI segments
+     * @param string|null  $scheme       URI scheme. E.g., http, ftp
      */
     function base_url($relativePath = '', ?string $scheme = null): string
     {
@@ -143,7 +164,7 @@ if (! function_exists('previous_url')) {
      * If that's not available, however, we'll use a sanitized url from $_SERVER['HTTP_REFERER']
      * which can be set by the user so is untrusted and not set by certain browsers/servers.
      *
-     * @return mixed|string|URI
+     * @return string|URI
      */
     function previous_url(bool $returnObject = false)
     {
@@ -185,7 +206,7 @@ if (! function_exists('index_page')) {
     function index_page(?App $altConfig = null): string
     {
         // use alternate config if provided, else default one
-        $config = $altConfig ?? config(App::class);
+        $config = $altConfig ?? config('App');
 
         return $config->indexPage;
     }
@@ -197,15 +218,15 @@ if (! function_exists('anchor')) {
      *
      * Creates an anchor based on the local URL.
      *
-     * @param mixed    $uri        URI string or array of URI segments
-     * @param string   $title      The link title
-     * @param mixed    $attributes Any attributes
-     * @param App|null $altConfig  Alternate configuration to use
+     * @param array|string        $uri        URI string or array of URI segments
+     * @param string              $title      The link title
+     * @param array|object|string $attributes Any attributes
+     * @param App|null            $altConfig  Alternate configuration to use
      */
     function anchor($uri = '', string $title = '', $attributes = '', ?App $altConfig = null): string
     {
         // use alternate config if provided, else default one
-        $config = $altConfig ?? config(App::class);
+        $config = $altConfig ?? config('App');
 
         $siteUrl = is_array($uri) ? site_url($uri, null, $config) : (preg_match('#^(\w+:)?//#i', $uri) ? $uri : site_url($uri, null, $config));
         // eliminate trailing slash
@@ -230,15 +251,15 @@ if (! function_exists('anchor_popup')) {
      * Creates an anchor based on the local URL. The link
      * opens a new window based on the attributes specified.
      *
-     * @param string   $uri        the URL
-     * @param string   $title      the link title
-     * @param mixed    $attributes any attributes
-     * @param App|null $altConfig  Alternate configuration to use
+     * @param string                    $uri        the URL
+     * @param string                    $title      the link title
+     * @param array|false|object|string $attributes any attributes
+     * @param App|null                  $altConfig  Alternate configuration to use
      */
     function anchor_popup($uri = '', string $title = '', $attributes = false, ?App $altConfig = null): string
     {
         // use alternate config if provided, else default one
-        $config = $altConfig ?? config(App::class);
+        $config = $altConfig ?? config('App');
 
         $siteUrl = preg_match('#^(\w+:)?//#i', $uri) ? $uri : site_url($uri, null, $config);
         $siteUrl = rtrim($siteUrl, '/');
@@ -280,9 +301,9 @@ if (! function_exists('mailto')) {
     /**
      * Mailto Link
      *
-     * @param string $email      the email address
-     * @param string $title      the link title
-     * @param mixed  $attributes any attributes
+     * @param string              $email      the email address
+     * @param string              $title      the link title
+     * @param array|object|string $attributes any attributes
      */
     function mailto(string $email, string $title = '', $attributes = ''): string
     {
@@ -300,12 +321,13 @@ if (! function_exists('safe_mailto')) {
      *
      * Create a spam-protected mailto link written in Javascript
      *
-     * @param string $email      the email address
-     * @param string $title      the link title
-     * @param mixed  $attributes any attributes
+     * @param string              $email      the email address
+     * @param string              $title      the link title
+     * @param array|object|string $attributes any attributes
      */
     function safe_mailto(string $email, string $title = '', $attributes = ''): string
     {
+        $count = 0;
         if (trim($title) === '') {
             $title = $email;
         }
@@ -369,7 +391,9 @@ if (! function_exists('safe_mailto')) {
         $x = array_reverse($x);
 
         // improve obfuscation by eliminating newlines & whitespace
-        $output = '<script type="text/javascript">'
+        $cspNonce = csp_script_nonce();
+        $cspNonce = $cspNonce ? ' ' . $cspNonce : $cspNonce;
+        $output   = '<script' . $cspNonce . '>'
                 . 'var l=new Array();';
 
         foreach ($x as $i => $value) {
@@ -553,7 +577,7 @@ if (! function_exists('url_is')) {
      * which will allow any valid character.
      *
      * Example:
-     *   if (url_is('admin*)) ...
+     *   if (url_is('admin*')) ...
      */
     function url_is(string $path): bool
     {

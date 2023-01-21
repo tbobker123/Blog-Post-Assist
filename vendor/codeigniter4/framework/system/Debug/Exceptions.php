@@ -12,14 +12,17 @@
 namespace CodeIgniter\Debug;
 
 use CodeIgniter\API\ResponseTrait;
+use CodeIgniter\Exceptions\HasExitCodeInterface;
+use CodeIgniter\Exceptions\HTTPExceptionInterface;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\Exceptions\HTTPException;
 use CodeIgniter\HTTP\IncomingRequest;
-use CodeIgniter\HTTP\Response;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\Exceptions as ExceptionsConfig;
 use Config\Paths;
 use ErrorException;
+use Psr\Log\LogLevel;
 use Throwable;
 
 /**
@@ -61,14 +64,14 @@ class Exceptions
     /**
      * The outgoing response.
      *
-     * @var Response
+     * @var ResponseInterface
      */
     protected $response;
 
     /**
      * @param CLIRequest|IncomingRequest $request
      */
-    public function __construct(ExceptionsConfig $config, $request, Response $response)
+    public function __construct(ExceptionsConfig $config, $request, ResponseInterface $response)
     {
         $this->ob_level = ob_get_level();
         $this->viewPath = rtrim($config->errorViewPath, '\\/ ') . DIRECTORY_SEPARATOR;
@@ -77,9 +80,15 @@ class Exceptions
         $this->response = $response;
 
         // workaround for upgraded users
-        if (! isset($this->config->sensitiveDataInTrace)) {
+        // This causes "Deprecated: Creation of dynamic property" in PHP 8.2.
+        // @TODO remove this after dropping PHP 8.1 support.
+        /*if (! isset($this->config->sensitiveDataInTrace)) {
             $this->config->sensitiveDataInTrace = [];
         }
+        if (! isset($this->config->logDeprecations, $this->config->deprecationLogLevel)) {
+            $this->config->logDeprecations     = false;
+            $this->config->deprecationLogLevel = LogLevel::WARNING;
+        }*/
     }
 
     /**
@@ -141,11 +150,9 @@ class Exceptions
     }
 
     /**
-     * Even in PHP7, some errors make it through to the errorHandler, so
-     * convert these to Exceptions and let the exception handler log it and
-     * display it.
+     * The callback to be registered to `set_error_handler()`.
      *
-     * This seems to be primarily when a user triggers it with trigger_error().
+     * @return bool
      *
      * @throws ErrorException
      *
@@ -153,11 +160,19 @@ class Exceptions
      */
     public function errorHandler(int $severity, string $message, ?string $file = null, ?int $line = null)
     {
-        if (! (error_reporting() & $severity)) {
-            return;
+        if ($this->isDeprecationError($severity)) {
+            if (! $this->config->logDeprecations || (bool) env('CODEIGNITER_SCREAM_DEPRECATIONS')) {
+                throw new ErrorException($message, 0, $severity, $file, $line);
+            }
+
+            return $this->handleDeprecationError($message, $file, $line);
         }
 
-        throw new ErrorException($message, 0, $severity, $file, $line);
+        if (error_reporting() & $severity) {
+            throw new ErrorException($message, 0, $severity, $file, $line);
+        }
+
+        return false; // return false to propagate the error to PHP standard error handler
     }
 
     /**
@@ -177,7 +192,7 @@ class Exceptions
         ['type' => $type, 'message' => $message, 'file' => $file, 'line' => $line] = $error;
 
         if (in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE], true)) {
-            $this->exceptionHandler(new ErrorException($message, $type, 0, $file, $line));
+            $this->exceptionHandler(new ErrorException($message, 0, $type, $file, $line));
         }
     }
 
@@ -312,26 +327,52 @@ class Exceptions
      */
     protected function determineCodes(Throwable $exception): array
     {
-        $statusCode = abs($exception->getCode());
+        $statusCode = 500;
+        $exitStatus = EXIT_ERROR;
 
-        if ($statusCode < 100 || $statusCode > 599) {
-            $exitStatus = $statusCode + EXIT__AUTO_MIN;
+        if ($exception instanceof HTTPExceptionInterface) {
+            $statusCode = $exception->getCode();
+        }
 
-            if ($exitStatus > EXIT__AUTO_MAX) {
-                $exitStatus = EXIT_ERROR;
-            }
-
-            $statusCode = 500;
-        } else {
-            $exitStatus = EXIT_ERROR;
+        if ($exception instanceof HasExitCodeInterface) {
+            $exitStatus = $exception->getExitCode();
         }
 
         return [$statusCode, $exitStatus];
     }
 
-    //--------------------------------------------------------------------
+    private function isDeprecationError(int $error): bool
+    {
+        $deprecations = E_DEPRECATED | E_USER_DEPRECATED;
+
+        return ($error & $deprecations) !== 0;
+    }
+
+    /**
+     * @return true
+     */
+    private function handleDeprecationError(string $message, ?string $file = null, ?int $line = null): bool
+    {
+        // Remove the trace of the error handler.
+        $trace = array_slice(debug_backtrace(), 2);
+
+        log_message(
+            $this->config->deprecationLogLevel,
+            "[DEPRECATED] {message} in {errFile} on line {errLine}.\n{trace}",
+            [
+                'message' => $message,
+                'errFile' => clean_path($file ?? ''),
+                'errLine' => $line ?? 0,
+                'trace'   => self::renderBacktrace($trace),
+            ]
+        );
+
+        return true;
+    }
+
+    // --------------------------------------------------------------------
     // Display Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * This makes nicer looking paths for the error output.

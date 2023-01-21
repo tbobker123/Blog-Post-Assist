@@ -6,13 +6,21 @@ use CodeIgniter\RESTful\ResourceController;
 use Orhanerday\OpenAi\OpenAi;
 use voku\helper\HtmlDomParser;
 use App\Models\Settings;
-use App\Models\APIKeys;
+use App\Models\APIkeys;
 use App\Models\SaveBlogPost;
+use App\Models\Queries;
 
 class ApiController extends ResourceController
 {
     private $total_word_count = 0;
     private $total_search_results = 0;
+    private $blogdrafts;
+    private $queries;
+    private $apikeys;
+    private $settings;
+    private $query;
+
+    private $report_progress = "We have started to generate your report.";
 
     /**
      * Return an array of resource objects, themselves in array format
@@ -24,8 +32,9 @@ class ApiController extends ResourceController
         $this->settings = new Settings();
         $this->apikeys = new APIKeys();
         $this->blogdrafts = new SaveBlogPost();
+        $this->queries = new Queries();
 
-        $this->query = $this->settings->find(0);
+        $this->query = $this->settings->where('user_id', auth()->id())->first();
      }
 
     public function index()
@@ -36,7 +45,7 @@ class ApiController extends ResourceController
     public function serpAPIAccountInfo(){
 
         //$serpapi_key = getenv("SERPAPI");
-        $api_key = $this->apikeys->where('name', 'serpapi')->first();
+        $api_key = $this->apikeys->where('name', 'serpapi')->where('user_id', auth()->id())->first();
         $serpapi_key = $api_key['key'];
 
         try {
@@ -74,13 +83,12 @@ class ApiController extends ResourceController
 
     public function openAIPrompt(){
 
-        $openai_api_key = $this->apikeys->where('name','openai')->first();
+        $openai_api_key = $this->apikeys->where('name','openai')->where('user_id', auth()->id())->first();
         $open_ai = new OpenAi($openai_api_key['key']);
-
-
+        
         $prompt = $this->request->getVar("prompt");
         $type = $this->request->getVar("type");
-
+        
         /**
          * OpenAI default settings
          */
@@ -92,7 +100,7 @@ class ApiController extends ResourceController
                 case "outline":
                     $openAIConfig = json_decode($open_ai->complete([
                         'engine' => $engine,
-                        'prompt' => $this->query['openAI_outline'] . $prompt,
+                        'prompt' => "create an interesting and detailed blog post, capitalising the headings with at least 10 headings thats 500 words long about $prompt",
                         'temperature' => 0.7,
                         'max_tokens' => 4000,
                         'presence_penalty' => 0.6,
@@ -117,6 +125,16 @@ class ApiController extends ResourceController
                         'presence_penalty' => 0,
                      ]));
                     break;
+                case "title":
+                    $openAIConfig = json_decode($open_ai->complete([
+                        'engine' => $engine,
+                        'prompt' => "creata a really catchy blog post title thats 155 characters long in active voice about " . $prompt,
+                        'temperature' => 0.95,
+                        'max_tokens' => 155,
+                        'presence_penalty' => 0,
+                        'top_p' => 1
+                        ]));
+                    break;
                 case "open":
                     $openAIConfig = json_decode($open_ai->complete([
                         'engine' => $engine,
@@ -140,12 +158,13 @@ class ApiController extends ResourceController
         }
     }
 
-    public function fetchSavedReports(){
-        $savedReports = new \App\Models\queries();
+    public function fetchSavedReports()
+    {
         try{
-            $results = $savedReports->query("SELECT id, query, ROUND(wordcount) as wordcount FROM queries");
-            if($results->getNumRows() > 0){
-                return $this->response->setJSON($results->resultArray);
+            $results = $this->queries->query("SELECT id, query, ROUND(wordcount) as wordcount FROM queries WHERE user_id =" . auth()->id())->getResultArray();
+
+            if(count($results) > 0){
+                return $this->response->setJSON($results);
             } else {
                 return $this->response->setJSON(["Error" => "No saved reports"]);
             }
@@ -174,7 +193,15 @@ class ApiController extends ResourceController
         }      
     }
 
-    public function searchResults(){
+    public function reportProgress(){
+        return $this->response->setJSON([
+            "progress" => $this->report_progress
+        ]);
+    }
+
+
+    public function searchResults()
+    {
         /**
          * Fetch total results to return
          */
@@ -194,7 +221,7 @@ class ApiController extends ResourceController
         /**
          * Load the SerpAPI key from the database
          */
-        $api_key = $this->apikeys->where('name', 'serpapi')->first();
+        $api_key = $this->apikeys->where('name', 'serpapi')->where('user_id', auth()->id())->first();
         $serpapi_key = $api_key['key'];
 
 
@@ -202,14 +229,23 @@ class ApiController extends ResourceController
          * If the query_id param exists then try and load a saved report
          */
         if($LoadSavedReport !== false){
+
             $fetchPreviousSERPs = $this->serpRetrieve($LoadSavedReport);
-            if(is_array($fetchPreviousSERPs)){
+
+            //print_r($fetchPreviousSERPs); exit;
+
+            if(isset($fetchPreviousSERPs['error']))
+            {
                 return $this->response->setJSON([
                     'error' => $fetchPreviousSERPs['error'],
                     'csrf_hash' => csrf_hash()
                 ]);
-            } else {
-                $result = json_decode($fetchPreviousSERPs->resultArray[0]['results']);
+            } 
+            else 
+            {
+                $result = json_decode($fetchPreviousSERPs['results']);
+
+                print_r($result);  exit;
                 $result->csrf_hash = csrf_hash();
                 $result->blogposts = $this->fetchSavedBlogPosts($LoadSavedReport);
                 return $this->response->setJSON($result);
@@ -220,6 +256,8 @@ class ApiController extends ResourceController
          * Try and run a new API request to SerpAPI
          */
         try {
+
+            $this->report_progress = "Fetching SERP results for analysis.";
 
             $query = urlencode($query);
             $url ="https://serpapi.com/search.json?engine=google&device=desktop&q=$query&api_key=$serpapi_key&num=$serp_results&gl=$location";
@@ -238,7 +276,12 @@ class ApiController extends ResourceController
             curl_close($ch);   
 
             $this->writeContentToDisk();
+
+            $this->report_progress = "Processing SERP results...";
+
             $process = $this->processSearchResults($output);
+
+            $this->report_progress = "Keyword extractio from results pages using NLP.";
 
             $keywordExtractorProcess = $this->rapidAPIExtractKeywords();
 
@@ -258,15 +301,23 @@ class ApiController extends ResourceController
                 "csrf_hash" => csrf_hash()
             ];
 
+            $this->report_progress = "We are saving your report.";
+
             $status = $this->serpSave($query, $serp_response);
 
-            if($status !== true){
+
+            if($status === false){
                 return $this->response->setJson([
                     'error' => $status,
                     'csrf_hash' => csrf_hash()
                 ]);
-            }
-            return  $this->response->setJSON($serp_response);
+            } else {
+                return  $this->response->setJSON([
+                    "wordcount" => ($this->total_word_count / $this->total_search_results) * 1.3,
+                    "keyword" => $query,
+                    "id" => $status
+                ]);
+            }           
             
         } catch (\Exception $e) {
             return $this->response->setJson([
@@ -278,10 +329,10 @@ class ApiController extends ResourceController
     }
 
     private function serpRetrieve($query){
-        $retrieveSerp = new \App\Models\queries();
         try{
-            $results = $retrieveSerp->query("SELECT results FROM queries WHERE id='$query'");
-            if($results->getNumRows() > 0){
+            $results = $this->queries->where('id', $query)->where('user_id', auth()->id())->first();
+
+            if(count($results) > 0){
                 return $results;
             } else {
                 return false;
@@ -295,23 +346,23 @@ class ApiController extends ResourceController
 
     private function serpSave($query, $response){
         $data = [
-            'query'=> $query,
+            'user_id' => auth()->id(),
+            'query'=> str_replace("+", " ", $query),
             'results' => json_encode($response),
             'wordcount' => $response['wordcount'],
             'relatedquestions' => json_encode($response['relatedquestions'])
         ];
-        $SaveSERP = new \App\Models\queries();
         try{
-            $SaveSERP->insert($data);
-            return true;
+            $this->queries->insert($data);
+            return $this->queries->getInsertID();
         }
         catch(\Exception $e){
-            return $e->getMessage();
+            return false;
         }
     }
 
     private function fetchSavedBlogPosts($keyword_id){
-        $results = $this->blogdrafts->where("query_id", $keyword_id)->findAll();
+        $results = $this->blogdrafts->where("query_id", $keyword_id)->where('user_id', auth()->id())->findAll();
         if(count($results) > 0){
             return $results;
         } else {
@@ -332,6 +383,7 @@ class ApiController extends ResourceController
                 'query_id' => $this->request->getVar('query_id'),
                 'title' => $this->request->getVar('title'),
                 'text' => $this->request->getVar('text'),
+                'user_id' => auth()->id(),
             ];
 
             /**
@@ -343,6 +395,15 @@ class ApiController extends ResourceController
                     'csrf_hash' => csrf_hash()
                 ]);
             }
+
+            if(empty($data['title'])){
+                return $this->response->setJSON([
+                    'status' => 'No title entered for blog post to save',
+                    'csrf_hash' => csrf_hash()
+                ]);
+            }
+
+
 
             /**
              * UPDATE BLOG POST DRAFT
@@ -399,13 +460,15 @@ class ApiController extends ResourceController
 
     public function rapidAPIExtractKeywords(){
 
-        $api_key = $this->apikeys->where('name','rapidapi')->first();
+        $api_key = $this->apikeys->where('name','rapidapi')->where('user_id', auth()->id())->first();
         $rapidapi_key = $api_key['key'];
 
         $curl = curl_init();
 
         $text = file_get_contents(ROOTPATH . 'text.txt');
         $text = str_replace("\n", '', $text);  
+        $text = addslashes(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+
 
         $payload = json_encode( array(
             "language" => "en",
@@ -413,7 +476,7 @@ class ApiController extends ResourceController
             "deduplication_algo" => "seqm",
             "max_ngram_size" => 3,
             "number_of_keywords" => 40,
-            "text" => $text,
+            "text" => $text
         ) );
 
         curl_setopt_array($curl, [
@@ -445,6 +508,8 @@ class ApiController extends ResourceController
         }
     }
 
+
+
     private function processSearchResults($serpapi){
 
         $results = json_decode($serpapi);
@@ -461,8 +526,8 @@ class ApiController extends ResourceController
                 $item->headings = 0;
             } else {
                 $item->wordcount = $wordCountAndHeadings['wordcount'];
-                $item->headings = $wordCountAndHeadings['headings'];
-
+                //$item->headings = $wordCountAndHeadings['headings'];
+                $item->structure = $wordCountAndHeadings['structure'];
                 $this->total_word_count = $this->total_word_count + $wordCountAndHeadings['wordcount'];
             }
 
@@ -483,12 +548,15 @@ class ApiController extends ResourceController
 
             $text = "";
             $headings = Array();
+            $headings_structure = array();
     
             foreach ($html->find('h1,h2,h3,h4,p') as $e) {
-                //$text .= " " . $this->strip($e->text, false);
                 $text .= " " . $this->strip($e->text,false);
 
-                if($e->nodeName != 'p') $headings[$e->nodeName][] = trim($e->text);
+                if ($e->nodeName != 'p') {
+                    //$headings[$e->nodeName][] = trim($e->text);
+                    $headings_structure[] = $e->nodeName . " - " . trim($e->text);
+                }
             }
 
             $wordcount = str_word_count($text);
@@ -497,7 +565,7 @@ class ApiController extends ResourceController
     
             return [
                 "wordcount" => $wordcount,
-                "headings"  => $headings
+                "structure" => $headings_structure,
             ];
 
         } catch (\Throwable $th) {
@@ -531,6 +599,12 @@ class ApiController extends ResourceController
     }
 
     public function fetchLocations(){
+
+        if($this->request->getVar("q") == null){
+            return $this->response->setJSON([
+                'error'
+            ]);
+        }
 
         $query = urlencode($this->request->getVar("q"));
 

@@ -29,6 +29,28 @@ You can install the package via composer:
 ```bash
 composer require orhanerday/open-ai
 ```
+## Quick Start
+
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php'; // remove this line if you use a PHP Framework.
+
+use Orhanerday\OpenAi\OpenAi;
+
+$open_ai = new OpenAi('sk-gjtv.....');
+
+$complete = $open_ai->complete([
+    'engine' => 'davinci',
+    'prompt' => 'Hello',
+    'temperature' => 0.9,
+    'max_tokens' => 150,
+    'frequency_penalty' => 0,
+    'presence_penalty' => 0.6,
+]);
+
+var_dump($complete);
+```
 
 ## Usage
 
@@ -55,6 +77,19 @@ $complete = $open_ai->complete([
     'max_tokens' => 150,
     'frequency_penalty' => 0,
     'presence_penalty' => 0.6,
+]);
+```
+
+## Images (Dall-E)
+
+Given a prompt, the model will return one or more generated images as urls or base64 encoded.
+
+ ```php
+$complete = $open_ai->image([
+    'prompt' => 'A cat drinking milk',
+    'n' => 1,
+    'size' => '256x256',
+    'response_format' => 'url',
 ]);
 ```
 
@@ -108,6 +143,17 @@ $classification = $open_ai->classification([
     'model' => 'curie',
 ]);
 ```
+
+## Content Moderations
+
+Given a input text, outputs if the model classifies it as violating OpenAI's content policy.
+
+```php
+$flags = $open_ai->moderation([
+    'input' => 'I want to kill them.'
+]);
+```
+Know more about Content Moderations here: [OpenAI Moderations](https://beta.openai.com/docs/api-reference/moderations)
 
 ## List engines
 

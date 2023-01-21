@@ -13,11 +13,12 @@ namespace CodeIgniter\Database\SQLSRV;
 
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\Exceptions\DatabaseException;
-use Exception;
 use stdClass;
 
 /**
  * Connection for SQLSRV
+ *
+ * @extends BaseConnection<resource, resource>
  */
 class Connection extends BaseConnection
 {
@@ -96,9 +97,9 @@ class Connection extends BaseConnection
     /**
      * Connect to the database.
      *
-     * @throws DatabaseException
+     * @return false|resource
      *
-     * @return mixed
+     * @throws DatabaseException
      */
     public function connect(bool $persistent = false)
     {
@@ -138,13 +139,24 @@ class Connection extends BaseConnection
             return $this->connID;
         }
 
+        throw new DatabaseException($this->getAllErrorMessages());
+    }
+
+    /**
+     * For exception message
+     *
+     * @internal
+     */
+    public function getAllErrorMessages(): string
+    {
         $errors = [];
 
-        foreach (sqlsrv_errors(SQLSRV_ERR_ERRORS) as $error) {
-            $errors[] = preg_replace('/(\[.+\]\[.+\](?:\[.+\])?)(.+)/', '$2', $error['message']);
+        foreach (sqlsrv_errors() as $error) {
+            $errors[] = $error['message']
+                . ' SQLSTATE: ' . $error['SQLSTATE'] . ', code: ' . $error['code'];
         }
 
-        throw new DatabaseException(implode("\n", $errors));
+        return implode("\n", $errors);
     }
 
     /**
@@ -183,13 +195,19 @@ class Connection extends BaseConnection
 
     /**
      * Generates the SQL for listing tables in a platform-dependent manner.
+     *
+     * @param string|null $tableName If $tableName is provided will return only this table if exists.
      */
-    protected function _listTables(bool $prefixLimit = false): string
+    protected function _listTables(bool $prefixLimit = false, ?string $tableName = null): string
     {
         $sql = 'SELECT [TABLE_NAME] AS "name"'
             . ' FROM [INFORMATION_SCHEMA].[TABLES] '
             . ' WHERE '
             . " [TABLE_SCHEMA] = '" . $this->schema . "'    ";
+
+        if ($tableName !== null) {
+            return $sql .= ' AND [TABLE_NAME] LIKE ' . $this->escape($tableName);
+        }
 
         if ($prefixLimit === true && $this->DBPrefix !== '') {
             $sql .= " AND [TABLE_NAME] LIKE '" . $this->escapeLikeString($this->DBPrefix) . "%' "
@@ -213,9 +231,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with index data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _indexData(string $table): array
     {
@@ -251,49 +269,47 @@ class Connection extends BaseConnection
      * Returns an array of objects with Foreign key data
      * referenced_object_id  parent_object_id
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _foreignKeyData(string $table): array
     {
-        $sql = 'SELECT '
-            . 'f.name as constraint_name, '
-            . 'OBJECT_NAME (f.parent_object_id) as table_name, '
-            . 'COL_NAME(fc.parent_object_id,fc.parent_column_id) column_name, '
-            . 'OBJECT_NAME(f.referenced_object_id) foreign_table_name, '
-            . 'COL_NAME(fc.referenced_object_id,fc.referenced_column_id) foreign_column_name '
-            . 'FROM  '
-            . 'sys.foreign_keys AS f '
-            . 'INNER JOIN  '
-            . 'sys.foreign_key_columns AS fc  '
-            . 'ON f.OBJECT_ID = fc.constraint_object_id '
-            . 'INNER JOIN  '
-            . 'sys.tables t  '
-            . 'ON t.OBJECT_ID = fc.referenced_object_id '
-            . 'WHERE  '
-            . 'OBJECT_NAME (f.parent_object_id) = ' . $this->escape($table);
+        $sql = 'SELECT
+                f.name as constraint_name,
+                OBJECT_NAME (f.parent_object_id) as table_name,
+                COL_NAME(fc.parent_object_id,fc.parent_column_id) column_name,
+                OBJECT_NAME(f.referenced_object_id) foreign_table_name,
+                COL_NAME(fc.referenced_object_id,fc.referenced_column_id) foreign_column_name,
+                rc.delete_rule,
+                rc.update_rule,
+                rc.match_option
+                FROM
+                sys.foreign_keys AS f
+                INNER JOIN sys.foreign_key_columns AS fc ON f.OBJECT_ID = fc.constraint_object_id
+                INNER JOIN sys.tables t ON t.OBJECT_ID = fc.referenced_object_id
+                INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc ON rc.CONSTRAINT_NAME = f.name
+                WHERE OBJECT_NAME (f.parent_object_id) = ' . $this->escape($table);
 
         if (($query = $this->query($sql)) === false) {
             throw new DatabaseException(lang('Database.failGetForeignKeyData'));
         }
 
-        $query  = $query->getResultObject();
-        $retVal = [];
+        $query   = $query->getResultObject();
+        $indexes = [];
 
         foreach ($query as $row) {
-            $obj = new stdClass();
-
-            $obj->constraint_name     = $row->constraint_name;
-            $obj->table_name          = $row->table_name;
-            $obj->column_name         = $row->column_name;
-            $obj->foreign_table_name  = $row->foreign_table_name;
-            $obj->foreign_column_name = $row->foreign_column_name;
-
-            $retVal[] = $obj;
+            $indexes[$row->constraint_name]['constraint_name']       = $row->constraint_name;
+            $indexes[$row->constraint_name]['table_name']            = $row->table_name;
+            $indexes[$row->constraint_name]['column_name'][]         = $row->column_name;
+            $indexes[$row->constraint_name]['foreign_table_name']    = $row->foreign_table_name;
+            $indexes[$row->constraint_name]['foreign_column_name'][] = $row->foreign_column_name;
+            $indexes[$row->constraint_name]['on_delete']             = $row->delete_rule;
+            $indexes[$row->constraint_name]['on_update']             = $row->update_rule;
+            $indexes[$row->constraint_name]['match']                 = $row->match_option;
         }
 
-        return $retVal;
+        return $this->foreignKeyDataToObjects($indexes);
     }
 
     /**
@@ -319,9 +335,9 @@ class Connection extends BaseConnection
     /**
      * Returns an array of objects with field data
      *
-     * @throws DatabaseException
-     *
      * @return stdClass[]
+     *
+     * @throws DatabaseException
      */
     protected function _fieldData(string $table): array
     {
@@ -445,7 +461,7 @@ class Connection extends BaseConnection
     /**
      * Executes the query against the database.
      *
-     * @return mixed
+     * @return false|resource
      */
     protected function execute(string $sql)
     {
@@ -457,8 +473,9 @@ class Connection extends BaseConnection
             $error = $this->error();
 
             log_message('error', $error['message']);
+
             if ($this->DBDebug) {
-                throw new Exception($error['message']);
+                throw new DatabaseException($error['message']);
             }
         }
 
@@ -512,6 +529,7 @@ class Connection extends BaseConnection
      */
     public function getVersion(): string
     {
+        $info = [];
         if (isset($this->dataCache['version'])) {
             return $this->dataCache['version'];
         }

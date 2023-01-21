@@ -25,8 +25,14 @@ class AuthCheckFilter implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        if(!session()->has('loggedInUser')){
+        /*if(!session()->has('loggedInUser')){
             return redirect()->to('/auth')->with('failed', 'You must be logged in to access this page.');
+        }*/
+
+        helper('auth');
+        if(!auth()->loggedIn())
+        {
+            return redirect()->to('/login')->with('failed', 'You must be logged in to access this page.');
         }
     }
 

@@ -23,6 +23,8 @@ use IteratorAggregate;
  *
  * Representation for a group of files, with utilities for locating,
  * filtering, and ordering them.
+ *
+ * @template-implements IteratorAggregate<int, File>
  */
 class FileCollection implements Countable, IteratorAggregate
 {
@@ -33,9 +35,9 @@ class FileCollection implements Countable, IteratorAggregate
      */
     protected $files = [];
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Support Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Resolves a full path and verifies it is an actual directory.
@@ -106,9 +108,9 @@ class FileCollection implements Countable, IteratorAggregate
         return array_filter($files, static fn ($value) => (bool) preg_match($pattern, basename($value)));
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Class Core
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Loads the Filesystem helper and adds any initial files.
@@ -189,9 +191,9 @@ class FileCollection implements Countable, IteratorAggregate
         return $this;
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // File Handling
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Verifies and adds files to the list.
@@ -245,9 +247,9 @@ class FileCollection implements Countable, IteratorAggregate
         return $this->removeFiles([$file]);
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Directory Handling
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Verifies and adds files from each
@@ -287,9 +289,9 @@ class FileCollection implements Countable, IteratorAggregate
         return $this;
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Filtering
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Removes any files from the list that match the supplied pattern
@@ -335,9 +337,9 @@ class FileCollection implements Countable, IteratorAggregate
         return $this->removeFiles(array_diff($files, self::matchFiles($files, $pattern)));
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Interface Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Returns the current number of files in the collection.
@@ -352,9 +354,9 @@ class FileCollection implements Countable, IteratorAggregate
      * Yields as an Iterator for the current files.
      * Fulfills IteratorAggregate.
      *
-     * @throws FileNotFoundException
-     *
      * @return Generator<File>
+     *
+     * @throws FileNotFoundException
      */
     public function getIterator(): Generator
     {

@@ -14,7 +14,7 @@ class Queries extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['query','results','relatedquestions','wordcount'];
+    protected $allowedFields    = ['user_id', 'query','results','relatedquestions','wordcount'];
 
     // Dates
     protected $useTimestamps = false;

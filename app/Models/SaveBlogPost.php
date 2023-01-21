@@ -14,7 +14,7 @@ class SaveBlogPost extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['title','text', 'query_id'];
+    protected $allowedFields    = ['title','text', 'query_id', 'user_id'];
 
     // Dates
     protected $useTimestamps = false;

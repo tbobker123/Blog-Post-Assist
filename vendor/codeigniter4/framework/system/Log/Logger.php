@@ -92,6 +92,7 @@ class Logger implements LoggerInterface
      * items.
      *
      * @var array
+     * @phpstan-var array<class-string, array<string, list<string>|string|int>>
      */
     protected $handlerConfig = [];
 
@@ -243,7 +244,7 @@ class Logger implements LoggerInterface
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed  $level
+     * @param string $level
      * @param string $message
      */
     public function log($level, $message, array $context = []): bool
@@ -264,10 +265,6 @@ class Logger implements LoggerInterface
 
         // Parse our placeholders
         $message = $this->interpolate($message, $context);
-
-        if (! is_string($message)) {
-            $message = print_r($message, true);
-        }
 
         if ($this->cacheLogs) {
             $this->logCache[] = [
@@ -312,14 +309,14 @@ class Logger implements LoggerInterface
      * {file}
      * {line}
      *
-     * @param mixed $message
+     * @param string $message
      *
-     * @return mixed
+     * @return string
      */
     protected function interpolate($message, array $context = [])
     {
         if (! is_string($message)) {
-            return $message;
+            return print_r($message, true);
         }
 
         // build a replacement array with braces around the context keys
@@ -329,7 +326,7 @@ class Logger implements LoggerInterface
             // Verify that the 'exception' key is actually an exception
             // or error, both of which implement the 'Throwable' interface.
             if ($key === 'exception' && $val instanceof Throwable) {
-                $val = $val->getMessage() . ' ' . $this->cleanFileNames($val->getFile()) . ':' . $val->getLine();
+                $val = $val->getMessage() . ' ' . clean_path($val->getFile()) . ':' . $val->getLine();
             }
 
             // todo - sanitize input before writing to file?
@@ -353,11 +350,9 @@ class Logger implements LoggerInterface
         if (strpos($message, 'env:') !== false) {
             preg_match('/env:[^}]+/', $message, $matches);
 
-            if ($matches) {
-                foreach ($matches as $str) {
-                    $key                 = str_replace('env:', '', $str);
-                    $replace["{{$str}}"] = $_ENV[$key] ?? 'n/a';
-                }
+            foreach ($matches as $str) {
+                $key                 = str_replace('env:', '', $str);
+                $replace["{{$str}}"] = $_ENV[$key] ?? 'n/a';
             }
         }
 
