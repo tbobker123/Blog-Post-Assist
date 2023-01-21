@@ -15,10 +15,14 @@ use Closure;
 use CodeIgniter\Database\BaseResult;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Entity\Entity;
+use SQLite3;
+use SQLite3Result;
 use stdClass;
 
 /**
  * Result for SQLite3
+ *
+ * @extends BaseResult<SQLite3, SQLite3Result>
  */
 class Result extends BaseResult
 {
@@ -90,9 +94,9 @@ class Result extends BaseResult
      * internally before fetching results to make sure the result set
      * starts at zero.
      *
-     * @throws DatabaseException
-     *
      * @return mixed
+     *
+     * @throws DatabaseException
      */
     public function dataSeek(int $n = 0)
     {

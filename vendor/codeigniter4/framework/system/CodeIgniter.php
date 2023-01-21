@@ -47,7 +47,7 @@ class CodeIgniter
     /**
      * The current version of CodeIgniter Framework
      */
-    public const CI_VERSION = '4.2.3';
+    public const CI_VERSION = '4.3.1';
 
     /**
      * App startup time.
@@ -130,6 +130,8 @@ class CodeIgniter
      * Request path to use.
      *
      * @var string
+     *
+     * @deprecated No longer used.
      */
     protected $path;
 
@@ -138,6 +140,8 @@ class CodeIgniter
      * to keep from setting headers/cookies/etc
      *
      * @var bool
+     *
+     * @deprecated No longer used.
      */
     protected $useSafeOutput = false;
 
@@ -145,11 +149,20 @@ class CodeIgniter
      * Context
      *  web:     Invoked by HTTP request
      *  php-cli: Invoked by CLI via `php public/index.php`
-     *  spark:   Invoked by CLI via the `spark` command
      *
-     * @phpstan-var 'php-cli'|'spark'|'web'
+     * @phpstan-var 'php-cli'|'web'
      */
     protected ?string $context = null;
+
+    /**
+     * Whether to enable Control Filters.
+     */
+    protected bool $enableFilters = true;
+
+    /**
+     * Whether to return Response object or send response.
+     */
+    protected bool $returnResponse = false;
 
     /**
      * Constructor.
@@ -184,10 +197,6 @@ class CodeIgniter
         date_default_timezone_set($this->config->appTimezone ?? 'UTC');
 
         $this->initializeKint();
-
-        if (! CI_DEBUG) {
-            Kint::$enabled_mode = false; // @codeCoverageIgnore
-        }
     }
 
     /**
@@ -200,11 +209,9 @@ class CodeIgniter
     protected function resolvePlatformExtensions()
     {
         $requiredExtensions = [
-            'curl',
             'intl',
             'json',
             'mbstring',
-            'xml',
         ];
 
         $missingExtensions = [];
@@ -225,6 +232,20 @@ class CodeIgniter
      */
     protected function initializeKint()
     {
+        if (CI_DEBUG) {
+            $this->autoloadKint();
+            $this->configureKint();
+        } elseif (class_exists(Kint::class)) {
+            // In case that Kint is already loaded via Composer.
+            Kint::$enabled_mode = false;
+            // @codeCoverageIgnore
+        }
+
+        helper('kint');
+    }
+
+    private function autoloadKint(): void
+    {
         // If we have KINT_DIR it means it's already loaded via composer
         if (! defined('KINT_DIR')) {
             spl_autoload_register(function ($class) {
@@ -243,7 +264,10 @@ class CodeIgniter
 
             require_once SYSTEMPATH . 'ThirdParty/Kint/init.php';
         }
+    }
 
+    private function configureKint(): void
+    {
         /** @var \Config\Kint $config */
         $config = config(KintConfig::class);
 
@@ -285,14 +309,19 @@ class CodeIgniter
      * tries to route the response, loads the controller and generally
      * makes all of the pieces work together.
      *
-     * @throws RedirectException
-     *
      * @return ResponseInterface|void
+     *
+     * @throws RedirectException
      */
     public function run(?RouteCollectionInterface $routes = null, bool $returnResponse = false)
     {
+        $this->returnResponse = $returnResponse;
+
         if ($this->context === null) {
-            throw new LogicException('Context must be set before run() is called. If you are upgrading from 4.1.x, you need to merge `public/index.php` and `spark` file from `vendor/codeigniter4/framework`.');
+            throw new LogicException(
+                'Context must be set before run() is called. If you are upgrading from 4.1.x, '
+                . 'you need to merge `public/index.php` and `spark` file from `vendor/codeigniter4/framework`.'
+            );
         }
 
         static::$cacheTTL = 0;
@@ -308,6 +337,10 @@ class CodeIgniter
 
         if ($this->request instanceof IncomingRequest && strtolower($this->request->getMethod()) === 'cli') {
             $this->response->setStatusCode(405)->setBody('Method Not Allowed');
+
+            if ($this->returnResponse) {
+                return $this->response;
+            }
 
             $this->sendResponse();
 
@@ -325,15 +358,10 @@ class CodeIgniter
                 return $response;
             }
 
-            $this->response->pretend($this->useSafeOutput)->send();
+            $this->response->send();
             $this->callExit(EXIT_SUCCESS);
 
             return;
-        }
-
-        // spark command has nothing to do with HTTP redirect and 404
-        if ($this->isSparked()) {
-            return $this->handleRequest($routes, $cacheConfig, $returnResponse);
         }
 
         try {
@@ -345,13 +373,22 @@ class CodeIgniter
             // If the route is a 'redirect' route, it throws
             // the exception with the $to as the message
             $this->response->redirect(base_url($e->getMessage()), 'auto', $e->getCode());
+
+            if ($this->returnResponse) {
+                return $this->response;
+            }
+
             $this->sendResponse();
 
             $this->callExit(EXIT_SUCCESS);
 
             return;
         } catch (PageNotFoundException $e) {
-            $this->display404errors($e);
+            $return = $this->display404errors($e);
+
+            if ($return instanceof ResponseInterface) {
+                return $return;
+            }
         }
     }
 
@@ -361,20 +398,14 @@ class CodeIgniter
      * not complain when ini_set() function is used.
      *
      * @return $this
+     *
+     * @deprecated No longer used.
      */
     public function useSafeOutput(bool $safe = true)
     {
         $this->useSafeOutput = $safe;
 
         return $this;
-    }
-
-    /**
-     * Invoked via spark command?
-     */
-    private function isSparked(): bool
-    {
-        return $this->context === 'spark';
     }
 
     /**
@@ -394,38 +425,49 @@ class CodeIgniter
     }
 
     /**
+     * Disables Controller Filters.
+     */
+    public function disableFilters(): void
+    {
+        $this->enableFilters = false;
+    }
+
+    /**
      * Handles the main request logic and fires the controller.
+     *
+     * @return ResponseInterface
      *
      * @throws PageNotFoundException
      * @throws RedirectException
      *
-     * @return ResponseInterface
+     * @deprecated $returnResponse is deprecated.
      */
     protected function handleRequest(?RouteCollectionInterface $routes, Cache $cacheConfig, bool $returnResponse = false)
     {
+        $this->returnResponse = $returnResponse;
+
         $routeFilter = $this->tryToRouteIt($routes);
 
         $uri = $this->determinePath();
 
-        // Start up the filters
-        $filters = Services::filters();
+        if ($this->enableFilters) {
+            // Start up the filters
+            $filters = Services::filters();
 
-        // If any filters were specified within the routes file,
-        // we need to ensure it's active for the current request
-        if ($routeFilter !== null) {
-            $multipleFiltersEnabled = config('Feature')->multipleFilters ?? false;
-            if ($multipleFiltersEnabled) {
-                $filters->enableFilters($routeFilter, 'before');
-                $filters->enableFilters($routeFilter, 'after');
-            } else {
-                // for backward compatibility
-                $filters->enableFilter($routeFilter, 'before');
-                $filters->enableFilter($routeFilter, 'after');
+            // If any filters were specified within the routes file,
+            // we need to ensure it's active for the current request
+            if ($routeFilter !== null) {
+                $multipleFiltersEnabled = config('Feature')->multipleFilters ?? false;
+                if ($multipleFiltersEnabled) {
+                    $filters->enableFilters($routeFilter, 'before');
+                    $filters->enableFilters($routeFilter, 'after');
+                } else {
+                    // for backward compatibility
+                    $filters->enableFilter($routeFilter, 'before');
+                    $filters->enableFilter($routeFilter, 'after');
+                }
             }
-        }
 
-        // Never run filters when running through Spark cli
-        if (! $this->isSparked()) {
             // Run "before" filters
             $this->benchmark->start('before_filters');
             $possibleResponse = $filters->run($uri, 'before');
@@ -433,7 +475,7 @@ class CodeIgniter
 
             // If a ResponseInterface instance is returned then send it back to the client and stop
             if ($possibleResponse instanceof ResponseInterface) {
-                return $returnResponse ? $possibleResponse : $possibleResponse->pretend($this->useSafeOutput)->send();
+                return $this->returnResponse ? $possibleResponse : $possibleResponse->send();
             }
 
             if ($possibleResponse instanceof Request) {
@@ -465,48 +507,50 @@ class CodeIgniter
         // so it can be used with the output.
         $this->gatherOutput($cacheConfig, $returned);
 
-        // After filter debug toolbar requires 'total_execution'.
-        $this->totalTime = $this->benchmark->getElapsedTime('total_execution');
-
-        // Never run filters when running through Spark cli
-        if (! $this->isSparked()) {
+        if ($this->enableFilters) {
+            $filters = Services::filters();
             $filters->setResponse($this->response);
+
+            // After filter debug toolbar requires 'total_execution'.
+            $this->totalTime = $this->benchmark->getElapsedTime('total_execution');
 
             // Run "after" filters
             $this->benchmark->start('after_filters');
             $response = $filters->run($uri, 'after');
             $this->benchmark->stop('after_filters');
-        } else {
-            $response = $this->response;
 
-            // Set response code for CLI command failures
-            if (is_numeric($returned) || $returned === false) {
-                $response->setStatusCode(400);
+            if ($response instanceof ResponseInterface) {
+                $this->response = $response;
             }
         }
 
-        if ($response instanceof ResponseInterface) {
-            $this->response = $response;
+        // Skip unnecessary processing for special Responses.
+        if (
+            ! $this->response instanceof DownloadResponse
+            && ! $this->response instanceof RedirectResponse
+        ) {
+            // Cache it without the performance metrics replaced
+            // so that we can have live speed updates along the way.
+            // Must be run after filters to preserve the Response headers.
+            if (static::$cacheTTL > 0) {
+                $this->cachePage($cacheConfig);
+            }
+
+            // Update the performance metrics
+            $body = $this->response->getBody();
+            if ($body !== null) {
+                $output = $this->displayPerformanceMetrics($body);
+                $this->response->setBody($output);
+            }
+
+            // Save our current URI as the previous URI in the session
+            // for safer, more accurate use with `previous_url()` helper function.
+            $this->storePreviousURL(current_url(true));
         }
-
-        // Cache it without the performance metrics replaced
-        // so that we can have live speed updates along the way.
-        // Must be run after filters to preserve the Response headers.
-        if (static::$cacheTTL > 0) {
-            $this->cachePage($cacheConfig);
-        }
-
-        // Update the performance metrics
-        $output = $this->displayPerformanceMetrics($this->response->getBody());
-        $this->response->setBody($output);
-
-        // Save our current URI as the previous URI in the session
-        // for safer, more accurate use with `previous_url()` helper function.
-        $this->storePreviousURL(current_url(true));
 
         unset($uri);
 
-        if (! $returnResponse) {
+        if (! $this->returnResponse) {
             $this->sendResponse();
         }
 
@@ -596,7 +640,7 @@ class CodeIgniter
             return;
         }
 
-        if ($this->isSparked() || $this->isPhpCli()) {
+        if ($this->isPhpCli()) {
             Services::createRequest($this->config, true);
         } else {
             Services::createRequest($this->config);
@@ -643,9 +687,9 @@ class CodeIgniter
     /**
      * Determines if a response has been cached for the given URI.
      *
-     * @throws Exception
-     *
      * @return false|ResponseInterface
+     *
+     * @throws Exception
      */
     public function displayCache(Cache $config)
     {
@@ -723,15 +767,13 @@ class CodeIgniter
             return md5($this->request->getPath());
         }
 
-        $uri = $this->request->getUri();
+        $uri = clone $this->request->getUri();
 
-        if ($config->cacheQueryString) {
-            $name = URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), $uri->getQuery());
-        } else {
-            $name = URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath());
-        }
+        $query = $config->cacheQueryString
+            ? $uri->getQuery(is_array($config->cacheQueryString) ? ['only' => $config->cacheQueryString] : [])
+            : '';
 
-        return md5($name);
+        return md5($uri->setFragment('')->setQuery($query));
     }
 
     /**
@@ -750,14 +792,14 @@ class CodeIgniter
      * @param RouteCollectionInterface|null $routes An collection interface to use in place
      *                                              of the config file.
      *
-     * @throws RedirectException
-     *
      * @return string|string[]|null Route filters, that is, the filters specified in the routes file
+     *
+     * @throws RedirectException
      */
     protected function tryToRouteIt(?RouteCollectionInterface $routes = null)
     {
         if ($routes === null) {
-            require APPPATH . 'Config/Routes.php';
+            $routes = Services::routes()->loadRoutes();
         }
 
         // $routes is defined in Config/Routes.php
@@ -792,7 +834,7 @@ class CodeIgniter
 
     /**
      * Determines the path to use for us to try to route to, based
-     * on user input (setPath), or the CLI/IncomingRequest path.
+     * on the CLI/IncomingRequest path.
      *
      * @return string
      */
@@ -809,9 +851,11 @@ class CodeIgniter
      * Allows the request path to be set from outside the class,
      * instead of relying on CLIRequest or IncomingRequest for the path.
      *
-     * This is primarily used by the Console.
+     * This is not used now.
      *
      * @return $this
+     *
+     * @deprecated No longer used.
      */
     public function setPath(string $path)
     {
@@ -857,6 +901,8 @@ class CodeIgniter
      */
     protected function createController()
     {
+        assert(is_string($this->controller));
+
         $class = new $this->controller();
         $class->initController($this->request, $this->response, Services::logger());
 
@@ -871,9 +917,7 @@ class CodeIgniter
      * CI4 supports three types of requests:
      *  1. Web: URI segments become parameters, sent to Controllers via Routes,
      *      output controlled by Headers to browser
-     *  2. Spark: accessed by CLI via the spark command, arguments are Command arguments,
-     *      sent to Commands by CommandRunner, output controlled by CLI class
-     *  3. PHP CLI: accessed by CLI via php public/index.php, arguments become URI segments,
+     *  2. PHP CLI: accessed by CLI via php public/index.php, arguments become URI segments,
      *      sent to Controllers via Routes, output varies
      *
      * @param mixed $class
@@ -882,21 +926,12 @@ class CodeIgniter
      */
     protected function runController($class)
     {
-        if ($this->isSparked()) {
-            // This is a Spark request
-            /** @var CLIRequest $request */
-            $request = $this->request;
-            $params  = $request->getArgs();
+        // This is a Web request or PHP CLI request
+        $params = $this->router->params();
 
-            $output = $class->_remap($this->method, $params);
-        } else {
-            // This is a Web request or PHP CLI request
-            $params = $this->router->params();
-
-            $output = method_exists($class, '_remap')
-                ? $class->_remap($this->method, ...$params)
-                : $class->{$this->method}(...$params);
-        }
+        $output = method_exists($class, '_remap')
+            ? $class->_remap($this->method, ...$params)
+            : $class->{$this->method}(...$params);
 
         $this->benchmark->stop('controller');
 
@@ -906,6 +941,8 @@ class CodeIgniter
     /**
      * Displays a 404 Page Not Found error. If set, will try to
      * call the 404Override controller/method that was set in routing config.
+     *
+     * @return ResponseInterface|void
      */
     protected function display404errors(PageNotFoundException $e)
     {
@@ -930,6 +967,10 @@ class CodeIgniter
 
             $cacheConfig = new Cache();
             $this->gatherOutput($cacheConfig, $returned);
+            if ($this->returnResponse) {
+                return $this->response;
+            }
+
             $this->sendResponse();
 
             return;
@@ -939,11 +980,9 @@ class CodeIgniter
         $this->response->setStatusCode($e->getCode());
 
         if (ENVIRONMENT !== 'testing') {
-            // @codeCoverageIgnoreStart
             if (ob_get_level() > 0) {
-                ob_end_flush();
+                ob_end_flush(); // @codeCoverageIgnore
             }
-            // @codeCoverageIgnoreEnd
         }
         // When testing, one is for phpunit, another is for test case.
         elseif (ob_get_level() > 2) {
@@ -976,8 +1015,10 @@ class CodeIgniter
 
         if ($returned instanceof DownloadResponse) {
             // Turn off output buffering completely, even if php.ini output_buffering is not off
-            while (ob_get_level() > 0) {
-                ob_end_clean();
+            if (ENVIRONMENT !== 'testing') {
+                while (ob_get_level() > 0) {
+                    ob_end_clean();
+                }
             }
 
             $this->response = $returned;
@@ -1038,7 +1079,13 @@ class CodeIgniter
         }
 
         if (isset($_SESSION)) {
-            $_SESSION['_ci_previous_url'] = URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), $uri->getQuery(), $uri->getFragment());
+            $_SESSION['_ci_previous_url'] = URI::createURIString(
+                $uri->getScheme(),
+                $uri->getAuthority(),
+                $uri->getPath(),
+                $uri->getQuery(),
+                $uri->getFragment()
+            );
         }
     }
 
@@ -1073,7 +1120,7 @@ class CodeIgniter
      */
     protected function sendResponse()
     {
-        $this->response->pretend($this->useSafeOutput)->send();
+        $this->response->send();
     }
 
     /**
@@ -1093,7 +1140,7 @@ class CodeIgniter
     /**
      * Sets the app context.
      *
-     * @phpstan-param 'php-cli'|'spark'|'web' $context
+     * @phpstan-param 'php-cli'|'web' $context
      *
      * @return $this
      */

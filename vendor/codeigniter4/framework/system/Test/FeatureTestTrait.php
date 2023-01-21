@@ -15,7 +15,6 @@ use CodeIgniter\Events\Events;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\Request;
 use CodeIgniter\HTTP\URI;
-use CodeIgniter\HTTP\UserAgent;
 use CodeIgniter\Router\Exceptions\RedirectException;
 use CodeIgniter\Router\RouteCollection;
 use Config\App;
@@ -138,10 +137,10 @@ trait FeatureTestTrait
      * Calls a single URI, executes it, and returns a TestResponse
      * instance that can be used to run many assertions against.
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function call(string $method, string $path, ?array $params = null)
     {
@@ -149,11 +148,9 @@ trait FeatureTestTrait
 
         // Clean up any open output buffers
         // not relevant to unit testing
-        // @codeCoverageIgnoreStart
         if (\ob_get_level() > 0 && (! isset($this->clean) || $this->clean === true)) {
-            \ob_end_clean();
+            \ob_end_clean(); // @codeCoverageIgnore
         }
-        // @codeCoverageIgnoreEnd
 
         // Simulate having a blank session
         $_SESSION                  = [];
@@ -166,12 +163,7 @@ trait FeatureTestTrait
 
         // Initialize the RouteCollection
         if (! $routes = $this->routes) {
-            require APPPATH . 'Config/Routes.php';
-
-            /**
-             * @var RouteCollection $routes
-             */
-            $routes->getRoutes('*');
+            $routes = Services::routes()->loadRoutes();
         }
 
         $routes->setHTTPVerb($method);
@@ -197,15 +189,13 @@ trait FeatureTestTrait
         Services::router()->setDirectory(null);
 
         // Ensure the output buffer is identical so no tests are risky
-        // @codeCoverageIgnoreStart
         while (\ob_get_level() > $buffer) {
-            \ob_end_clean();
+            \ob_end_clean(); // @codeCoverageIgnore
         }
 
         while (\ob_get_level() < $buffer) {
-            \ob_start();
+            \ob_start(); // @codeCoverageIgnore
         }
-        // @codeCoverageIgnoreEnd
 
         return new TestResponse($response);
     }
@@ -213,10 +203,10 @@ trait FeatureTestTrait
     /**
      * Performs a GET request.
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function get(string $path, ?array $params = null)
     {
@@ -226,10 +216,10 @@ trait FeatureTestTrait
     /**
      * Performs a POST request.
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function post(string $path, ?array $params = null)
     {
@@ -239,10 +229,10 @@ trait FeatureTestTrait
     /**
      * Performs a PUT request
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function put(string $path, ?array $params = null)
     {
@@ -252,10 +242,10 @@ trait FeatureTestTrait
     /**
      * Performss a PATCH request
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function patch(string $path, ?array $params = null)
     {
@@ -265,10 +255,10 @@ trait FeatureTestTrait
     /**
      * Performs a DELETE request.
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function delete(string $path, ?array $params = null)
     {
@@ -278,10 +268,10 @@ trait FeatureTestTrait
     /**
      * Performs an OPTIONS request.
      *
+     * @return TestResponse
+     *
      * @throws RedirectException
      * @throws Exception
-     *
-     * @return TestResponse
      */
     public function options(string $path, ?array $params = null)
     {
@@ -296,7 +286,7 @@ trait FeatureTestTrait
     {
         $path    = URI::removeDotSegments($path);
         $config  = config(App::class);
-        $request = new IncomingRequest($config, new URI(), null, new UserAgent());
+        $request = Services::request($config, true);
 
         // $path may have a query in it
         $parts                   = explode('?', $path);
@@ -335,9 +325,9 @@ trait FeatureTestTrait
      *
      * Always populate the GET vars based on the URI.
      *
-     * @throws ReflectionException
-     *
      * @return Request
+     *
+     * @throws ReflectionException
      */
     protected function populateGlobals(string $method, Request $request, ?array $params = null)
     {

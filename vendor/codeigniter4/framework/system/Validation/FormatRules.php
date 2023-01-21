@@ -293,7 +293,7 @@ class FormatRules
             return false;
         }
 
-        if (preg_match('/^(?:([^:]*)\:)?\/\/(.+)$/', $str, $matches)) {
+        if (preg_match('/\A(?:([^:]*)\:)?\/\/(.+)\z/', $str, $matches)) {
             if (! in_array($matches[1], ['http', 'https'], true)) {
                 return false;
             }
@@ -344,6 +344,15 @@ class FormatRules
         $date   = DateTime::createFromFormat($format, $str);
         $errors = DateTime::getLastErrors();
 
-        return $date !== false && $errors !== false && $errors['warning_count'] === 0 && $errors['error_count'] === 0;
+        if ($date === false) {
+            return false;
+        }
+
+        // PHP 8.2 or later.
+        if ($errors === false) {
+            return true;
+        }
+
+        return $errors['warning_count'] === 0 && $errors['error_count'] === 0;
     }
 }

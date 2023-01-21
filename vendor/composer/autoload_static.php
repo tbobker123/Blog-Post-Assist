@@ -7,9 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInitfcb22189db3805216c44a03c31584757
 {
     public static $files = array (
-        '3917c79c5052b270641b5a200963dbc2' => __DIR__ . '/..' . '/kint-php/kint/init.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '3f21dc9c7942b4b08e22c921761edb59' => __DIR__ . '/..' . '/codeigniter4/shield/src/Helpers/auth_helper.php',
+        'd769f6a3ea016e6093cedc85aa1e205d' => __DIR__ . '/..' . '/codeigniter4/shield/src/Helpers/email_helper.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
     );
 
@@ -17,14 +18,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'v' => 
         array (
             'voku\\helper\\' => 12,
-        ),
-        'p' => 
-        array (
-            'phpDocumentor\\Reflection\\' => 25,
-        ),
-        'W' => 
-        array (
-            'Webmozart\\Assert\\' => 17,
         ),
         'T' => 
         array (
@@ -38,7 +31,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Container\\' => 14,
-            'Prophecy\\' => 9,
             'PhpParser\\' => 10,
         ),
         'O' => 
@@ -48,10 +40,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'L' => 
         array (
             'Laminas\\Escaper\\' => 16,
-        ),
-        'K' => 
-        array (
-            'Kint\\' => 5,
         ),
         'F' => 
         array (
@@ -64,6 +52,8 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         ),
         'C' => 
         array (
+            'CodeIgniter\\Shield\\' => 19,
+            'CodeIgniter\\Settings\\' => 21,
             'CodeIgniter\\' => 12,
         ),
     );
@@ -72,16 +62,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'voku\\helper\\' => 
         array (
             0 => __DIR__ . '/..' . '/voku/simple_html_dom/src/voku/helper',
-        ),
-        'phpDocumentor\\Reflection\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
-            1 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
-            2 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
-        ),
-        'Webmozart\\Assert\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
         'Tests\\Support\\' => 
         array (
@@ -99,10 +79,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Prophecy\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/phpspec/prophecy/src/Prophecy',
-        ),
         'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
@@ -115,10 +91,6 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         array (
             0 => __DIR__ . '/..' . '/laminas/laminas-escaper/src',
         ),
-        'Kint\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/kint-php/kint/src',
-        ),
         'Faker\\' => 
         array (
             0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
@@ -130,6 +102,14 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'DeepCopy\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
+        ),
+        'CodeIgniter\\Shield\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/codeigniter4/shield/src',
+        ),
+        'CodeIgniter\\Settings\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/codeigniter4/settings/src',
         ),
         'CodeIgniter\\' => 
         array (
@@ -244,6 +224,7 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'PHPUnit\\Framework\\MockObject\\CannotUseOnlyMethodsException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/CannotUseOnlyMethodsException.php',
         'PHPUnit\\Framework\\MockObject\\ClassAlreadyExistsException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/ClassAlreadyExistsException.php',
         'PHPUnit\\Framework\\MockObject\\ClassIsFinalException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/ClassIsFinalException.php',
+        'PHPUnit\\Framework\\MockObject\\ClassIsReadonlyException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/ClassIsReadonlyException.php',
         'PHPUnit\\Framework\\MockObject\\ConfigurableMethod' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/ConfigurableMethod.php',
         'PHPUnit\\Framework\\MockObject\\ConfigurableMethodsAlreadyInitializedException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/ConfigurableMethodsAlreadyInitializedException.php',
         'PHPUnit\\Framework\\MockObject\\DuplicateMethodException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/DuplicateMethodException.php',
@@ -453,6 +434,7 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'PHPUnit\\Util\\Annotation\\DocBlock' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Annotation/DocBlock.php',
         'PHPUnit\\Util\\Annotation\\Registry' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Annotation/Registry.php',
         'PHPUnit\\Util\\Blacklist' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Blacklist.php',
+        'PHPUnit\\Util\\Cloner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Cloner.php',
         'PHPUnit\\Util\\Color' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Color.php',
         'PHPUnit\\Util\\ErrorHandler' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/ErrorHandler.php',
         'PHPUnit\\Util\\Exception' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception.php',
@@ -754,10 +736,12 @@ class ComposerStaticInitfcb22189db3805216c44a03c31584757
         'SebastianBergmann\\Type\\NeverType' => __DIR__ . '/..' . '/sebastian/type/src/type/NeverType.php',
         'SebastianBergmann\\Type\\NullType' => __DIR__ . '/..' . '/sebastian/type/src/type/NullType.php',
         'SebastianBergmann\\Type\\ObjectType' => __DIR__ . '/..' . '/sebastian/type/src/type/ObjectType.php',
+        'SebastianBergmann\\Type\\Parameter' => __DIR__ . '/..' . '/sebastian/type/src/Parameter.php',
         'SebastianBergmann\\Type\\ReflectionMapper' => __DIR__ . '/..' . '/sebastian/type/src/ReflectionMapper.php',
         'SebastianBergmann\\Type\\RuntimeException' => __DIR__ . '/..' . '/sebastian/type/src/exception/RuntimeException.php',
         'SebastianBergmann\\Type\\SimpleType' => __DIR__ . '/..' . '/sebastian/type/src/type/SimpleType.php',
         'SebastianBergmann\\Type\\StaticType' => __DIR__ . '/..' . '/sebastian/type/src/type/StaticType.php',
+        'SebastianBergmann\\Type\\TrueType' => __DIR__ . '/..' . '/sebastian/type/src/type/TrueType.php',
         'SebastianBergmann\\Type\\Type' => __DIR__ . '/..' . '/sebastian/type/src/type/Type.php',
         'SebastianBergmann\\Type\\TypeName' => __DIR__ . '/..' . '/sebastian/type/src/TypeName.php',
         'SebastianBergmann\\Type\\UnionType' => __DIR__ . '/..' . '/sebastian/type/src/type/UnionType.php',

@@ -27,7 +27,7 @@ class Negotiate
     /**
      * Request
      *
-     * @var IncomingRequest|RequestInterface
+     * @var IncomingRequest
      */
     protected $request;
 
@@ -37,6 +37,8 @@ class Negotiate
     public function __construct(?RequestInterface $request = null)
     {
         if ($request !== null) {
+            assert($request instanceof IncomingRequest);
+
             $this->request = $request;
         }
     }
@@ -48,6 +50,8 @@ class Negotiate
      */
     public function setRequest(RequestInterface $request)
     {
+        assert($request instanceof IncomingRequest);
+
         $this->request = $request;
 
         return $this;
@@ -79,7 +83,12 @@ class Negotiate
      */
     public function charset(array $supported): string
     {
-        $match = $this->getBestMatch($supported, $this->request->getHeaderLine('accept-charset'), false, true);
+        $match = $this->getBestMatch(
+            $supported,
+            $this->request->getHeaderLine('accept-charset'),
+            false,
+            true
+        );
 
         // If no charset is shown as a match, ignore the directive
         // as allowed by the RFC, and tell it a default value.
@@ -118,9 +127,9 @@ class Negotiate
         return $this->getBestMatch($supported, $this->request->getHeaderLine('accept-language'), false, false, true);
     }
 
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Utility Methods
-    //--------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     /**
      * Does the grunt work of comparing any of the app-supported values
@@ -137,8 +146,13 @@ class Negotiate
      *
      * @return string Best match
      */
-    protected function getBestMatch(array $supported, ?string $header = null, bool $enforceTypes = false, bool $strictMatch = false, bool $matchLocales = false): string
-    {
+    protected function getBestMatch(
+        array $supported,
+        ?string $header = null,
+        bool $enforceTypes = false,
+        bool $strictMatch = false,
+        bool $matchLocales = false
+    ): string {
         if (empty($supported)) {
             throw HTTPException::forEmptySupportedNegotiations();
         }

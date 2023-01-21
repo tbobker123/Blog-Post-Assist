@@ -155,10 +155,10 @@ class Router implements RouterInterface
     }
 
     /**
+     * @return Closure|string Controller classname or Closure
+     *
      * @throws PageNotFoundException
      * @throws RedirectException
-     *
-     * @return Closure|string Controller classname or Closure
      */
     public function handle(?string $uri = null)
     {
@@ -384,9 +384,9 @@ class Router implements RouterInterface
      *
      * @param string $uri The URI path to compare against the routes
      *
-     * @throws RedirectException
-     *
      * @return bool Whether the route was matched or not.
+     *
+     * @throws RedirectException
      */
     protected function checkRoutes(string $uri): bool
     {
@@ -439,6 +439,13 @@ class Router implements RouterInterface
                         $matched
                     );
 
+                    if ($this->collection->shouldUseSupportedLocalesOnly()
+                        && ! in_array($matched['locale'], config('App')->supportedLocales, true)) {
+                        // Throw exception to prevent the autorouter, if enabled,
+                        // from trying to find a route
+                        throw PageNotFoundException::forLocaleNotSupported($matched['locale']);
+                    }
+
                     $this->detectedLocale = $matched['locale'];
                     unset($matched);
                 }
@@ -459,7 +466,7 @@ class Router implements RouterInterface
                     return true;
                 }
 
-                [$controller, ] = explode('::', $handler);
+                [$controller] = explode('::', $handler);
 
                 // Checks `/` in controller name
                 if (strpos($controller, '/') !== false) {
@@ -574,8 +581,6 @@ class Router implements RouterInterface
     {
         if (empty($dir)) {
             $this->directory = null;
-
-            return;
         }
 
         if ($this->autoRouter instanceof AutoRouter) {

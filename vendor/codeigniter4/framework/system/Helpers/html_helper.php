@@ -22,7 +22,7 @@ if (! function_exists('ul')) {
      * Generates an HTML unordered list from an single or
      * multi-dimensional array.
      *
-     * @param mixed $attributes HTML attributes string, array, object
+     * @param array|object|string $attributes HTML attributes string, array, object
      */
     function ul(array $list, $attributes = ''): string
     {
@@ -36,7 +36,7 @@ if (! function_exists('ol')) {
      *
      * Generates an HTML ordered list from an single or multi-dimensional array.
      *
-     * @param mixed $attributes HTML attributes string, array, object
+     * @param array|object|string $attributes HTML attributes string, array, object
      */
     function ol(array $list, $attributes = ''): string
     {
@@ -50,8 +50,8 @@ if (! function_exists('_list')) {
      *
      * Generates an HTML ordered list from an single or multi-dimensional array.
      *
-     * @param mixed $list
-     * @param mixed $attributes string, array, object
+     * @param array               $list
+     * @param array|object|string $attributes string, array, object
      */
     function _list(string $type = 'ul', $list = [], $attributes = '', int $depth = 0): string
     {
@@ -128,7 +128,7 @@ if (! function_exists('img')) {
             unset($attributes['alt'], $attributes['src']);
         }
 
-        return $img . stringify_attributes($attributes) . ' />';
+        return $img . stringify_attributes($attributes) . _solidus() . '>';
     }
 }
 
@@ -194,7 +194,9 @@ if (! function_exists('script_tag')) {
      */
     function script_tag($src = '', bool $indexPage = false): string
     {
-        $script = '<script ';
+        $cspNonce = csp_script_nonce();
+        $cspNonce = $cspNonce ? ' ' . $cspNonce : $cspNonce;
+        $script   = '<script' . $cspNonce . ' ';
         if (! is_array($src)) {
             $src = ['src' => $src];
         }
@@ -212,7 +214,7 @@ if (! function_exists('script_tag')) {
             }
         }
 
-        return $script . 'type="text/javascript"></script>';
+        return rtrim($script) . '></script>';
     }
 }
 
@@ -220,15 +222,21 @@ if (! function_exists('link_tag')) {
     /**
      * Link
      *
-     * Generates link to a CSS file
+     * Generates link tag
      *
-     * @param mixed $href      Stylesheet href or an array
-     * @param bool  $indexPage should indexPage be added to the CSS path.
+     * @param array<string, bool|string>|string $href      Stylesheet href or an array
+     * @param bool                              $indexPage should indexPage be added to the CSS path.
      */
-    function link_tag($href = '', string $rel = 'stylesheet', string $type = 'text/css', string $title = '', string $media = '', bool $indexPage = false, string $hreflang = ''): string
-    {
-        $link = '<link ';
-
+    function link_tag(
+        $href = '',
+        string $rel = 'stylesheet',
+        string $type = 'text/css',
+        string $title = '',
+        string $media = '',
+        bool $indexPage = false,
+        string $hreflang = ''
+    ): string {
+        $attributes = [];
         // extract fields if needed
         if (is_array($href)) {
             $rel       = $href['rel'] ?? $rel;
@@ -241,34 +249,30 @@ if (! function_exists('link_tag')) {
         }
 
         if (! preg_match('#^([a-z]+:)?//#i', $href)) {
-            if ($indexPage === true) {
-                $link .= 'href="' . site_url($href) . '" ';
-            } else {
-                $link .= 'href="' . slash_item('baseURL') . $href . '" ';
-            }
+            $attributes['href'] = $indexPage ? site_url($href) : slash_item('baseURL') . $href;
         } else {
-            $link .= 'href="' . $href . '" ';
+            $attributes['href'] = $href;
         }
 
         if ($hreflang !== '') {
-            $link .= 'hreflang="' . $hreflang . '" ';
+            $attributes['hreflang'] = $hreflang;
         }
 
-        $link .= 'rel="' . $rel . '" ';
+        $attributes['rel'] = $rel;
 
-        if (! in_array($rel, ['alternate', 'canonical'], true)) {
-            $link .= 'type="' . $type . '" ';
+        if ($type !== '' && $rel !== 'canonical' && $hreflang === '' && ! ($rel === 'alternate' && $media !== '')) {
+            $attributes['type'] = $type;
         }
 
         if ($media !== '') {
-            $link .= 'media="' . $media . '" ';
+            $attributes['media'] = $media;
         }
 
         if ($title !== '') {
-            $link .= 'title="' . $title . '" ';
+            $attributes['title'] = $title;
         }
 
-        return $link . '/>';
+        return '<link' . stringify_attributes($attributes) . _solidus() . '>';
     }
 }
 
@@ -279,9 +283,9 @@ if (! function_exists('video')) {
      * Generates a video element to embed videos. The video element can
      * contain one or more video sources
      *
-     * @param mixed  $src                Either a source string or an array of sources
-     * @param string $unsupportedMessage The message to display if the media tag is not supported by the browser
-     * @param string $attributes         HTML attributes
+     * @param array|string $src                Either a source string or an array of sources
+     * @param string       $unsupportedMessage The message to display if the media tag is not supported by the browser
+     * @param string       $attributes         HTML attributes
      */
     function video($src, string $unsupportedMessage = '', string $attributes = '', array $tracks = [], bool $indexPage = false): string
     {
@@ -325,9 +329,9 @@ if (! function_exists('audio')) {
      *
      * Generates an audio element to embed sounds
      *
-     * @param mixed  $src                Either a source string or an array of sources
-     * @param string $unsupportedMessage The message to display if the media tag is not supported by the browser.
-     * @param string $attributes         HTML attributes
+     * @param array|string $src                Either a source string or an array of sources
+     * @param string       $unsupportedMessage The message to display if the media tag is not supported by the browser.
+     * @param string       $attributes         HTML attributes
      */
     function audio($src, string $unsupportedMessage = '', string $attributes = '', array $tracks = [], bool $indexPage = false): string
     {
@@ -421,7 +425,7 @@ if (! function_exists('source')) {
             $source .= ' ' . $attributes;
         }
 
-        return $source . ' />';
+        return $source . _solidus() . '>';
     }
 }
 
@@ -440,7 +444,7 @@ if (! function_exists('track')) {
                 . '" kind="' . $kind
                 . '" srclang="' . $srcLanguage
                 . '" label="' . $label
-                . '" />';
+                . '"' . _solidus() . '>';
     }
 }
 
@@ -494,7 +498,7 @@ if (! function_exists('param')) {
         return '<param name="' . $name
                 . '" type="' . $type
                 . '" value="' . $value
-                . '" ' . $attributes . ' />';
+                . '" ' . $attributes . _solidus() . '>';
     }
 }
 
@@ -516,7 +520,7 @@ if (! function_exists('embed')) {
 
         return '<embed src="' . $src
                 . '" type="' . $type . '" '
-                . $attributes . " />\n";
+                . $attributes . _solidus() . ">\n";
     }
 }
 

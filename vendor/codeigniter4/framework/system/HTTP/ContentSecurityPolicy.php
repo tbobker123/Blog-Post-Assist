@@ -300,11 +300,10 @@ class ContentSecurityPolicy
      */
     public function finalize(ResponseInterface $response)
     {
-        if ($this->autoNonce === false) {
-            return;
+        if ($this->autoNonce) {
+            $this->generateNonces($response);
         }
 
-        $this->generateNonces($response);
         $this->buildHeaders($response);
     }
 
@@ -691,11 +690,7 @@ class ContentSecurityPolicy
      */
     protected function buildHeaders(ResponseInterface $response)
     {
-        /**
-         * Ensure both headers are available and arrays...
-         *
-         * @var Response $response
-         */
+        // Ensure both headers are available and arrays...
         $response->setHeader('Content-Security-Policy', []);
         $response->setHeader('Content-Security-Policy-Report-Only', []);
 

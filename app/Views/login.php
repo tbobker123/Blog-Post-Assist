@@ -1,84 +1,81 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-  </head>
-  <body>
 
-    <div class="container">
+<?=$this->extend(config('Auth')->views['layout']) ?>
 
-      <div class="row mb-4 mt-3">
-        <div class="col p-2 text-center">
-            <span class="h1">
-              <a href="/">
-                Blog Post Assist
-              </a>
-            </span>
+<?= $this->section('title') ?><?= lang('Auth.login') ?> <?= $this->endSection() ?>
+
+<?= $this->section('main') ?>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+    <div class="container px-4">
+        <a class="navbar-brand" href="/">Blog Post Assist</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
         </div>
-      </div>
+    </div>
+</nav>
 
-      <div class="row">
-
-        <div class="col-md-4 offset-md-4 mt-3">
-          
-          <?php if (session()->getFlashdata('failed') !== NULL) : ?>
-          <div class="alert alert-danger" role="alert">
-              <?php echo session()->getFlashdata('failed'); ?>
-          </div>
-          <?php endif; ?>
-
-          <form action="/auth/login" method="post" class="form">
-          <?php echo csrf_field();?>
-          <div class="card">
-            <div class="card-header">
-              <h3 class="p-0 m-0">Login</h3>
-            </div>
+    <div class="container d-flex justify-content-center p-5 mt-5">
+        <div class="card col-12 col-md-5 shadow-sm">
             <div class="card-body">
+                <h5 class="card-title mb-5"><?= lang('Auth.login') ?></h5>
 
-            <div class="form-group mb-3">
-              <label for="">Username</label>
-              <input type="text" name="username" placeholder="username" class="form-control">
+                <?php if (session('error') !== null) : ?>
+                    <div class="alert alert-danger" role="alert"><?= session('error') ?></div>
+                <?php elseif (session('errors') !== null) : ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php if (is_array(session('errors'))) : ?>
+                            <?php foreach (session('errors') as $error) : ?>
+                                <?= $error ?>
+                                <br>
+                            <?php endforeach ?>
+                        <?php else : ?>
+                            <?= session('errors') ?>
+                        <?php endif ?>
+                    </div>
+                <?php endif ?>
+
+                <?php if (session('message') !== null) : ?>
+                <div class="alert alert-success" role="alert"><?= session('message') ?></div>
+                <?php endif ?>
+
+                <form action="<?= url_to('login') ?>" method="post">
+                    <?= csrf_field() ?>
+
+                    <!-- Email -->
+                    <div class="mb-2">
+                        <input type="email" class="form-control" name="email" inputmode="email" autocomplete="email" placeholder="<?= lang('Auth.email') ?>" value="<?= old('email') ?>" required />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-2">
+                        <input type="password" class="form-control" name="password" inputmode="text" autocomplete="current-password" placeholder="<?= lang('Auth.password') ?>" required />
+                    </div>
+
+                    <!-- Remember me -->
+                    <?php if (setting('Auth.sessionConfig')['allowRemembering']): ?>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember')): ?> checked<?php endif ?>>
+                                <?= lang('Auth.rememberMe') ?>
+                            </label>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="d-grid col-12 col-md-8 mx-auto m-3">
+                        <button type="submit" class="btn btn-primary btn-block"><?= lang('Auth.login') ?></button>
+                    </div>
+
+                    <?php if (setting('Auth.allowMagicLinkLogins')) : ?>
+                        <p class="text-center"><?= lang('Auth.forgotPassword') ?> <a href="<?= url_to('magic-link') ?>"><?= lang('Auth.useMagicLink') ?></a></p>
+                    <?php endif ?>
+
+                    <?php if (setting('Auth.allowRegistration')) : ?>
+                        <p class="text-center"><?= lang('Auth.needAccount') ?> <a href="<?= url_to('register') ?>"><?= lang('Auth.register') ?></a></p>
+                    <?php endif ?>
+
+                </form>
             </div>
-
-            <div class="form-group mb-3">
-              <label for="">Password</label>
-              <input type="password" name="password" placeholder="password" class="form-control">
-            </div>
-
-              <input type="submit" value="Login" class="btn btn-primary">
-            </div>
-          </div>
-          </form>
-
-          <!--<form action="/auth/login" method="post" class="form">
-            <?php //csrf_field();?>
-            <div class="form-group mb-3">
-              <label for="">Username</label>
-              <input type="text" name="username" placeholder="username" class="form-control">
-            </div>
-
-            <div class="form-group mb-3">
-              <label for="">Password</label>
-              <input type="password" name="password" placeholder="password" class="form-control">
-            </div>
-
-            <div class="form-group mb-3">
-              <input type="submit" value="Login" class="btn btn-primary w-100">
-            </div>
-          </form>-->
-
-
         </div>
-      </div>
     </div>
 
-    <?php echo view('footer.php'); ?>
-  </body>
-</html>
+<?=$this->endSection() ?>

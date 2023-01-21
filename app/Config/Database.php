@@ -32,11 +32,11 @@ class Database extends Config
      */
     public $default = [
         'DSN'      => '',
-        'hostname' => 'localhost',
+        'hostname' => '',
         'username' => '',
         'password' => '',
-        'database' => APPPATH . 'Database/settings.db',
-        'DBDriver' => 'SQLite3',
+        'database' => '',
+        'DBDriver' => 'MYSQLi',
         'DBPrefix' => '',
         'pConnect' => false,
         'DBDebug'  => (ENVIRONMENT !== 'production'),
@@ -47,7 +47,7 @@ class Database extends Config
         'compress' => false,
         'strictOn' => false,
         'failover' => [],
-        'port'     => 3306,
+        'port'     => ''
     ];
 
     /**

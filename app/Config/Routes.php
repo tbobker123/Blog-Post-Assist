@@ -37,24 +37,27 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::Index');
+
+/*
 $routes->get('/auth', 'Auth::Index');
 $routes->get('/logout', 'Auth::Logout');
-
 $routes->post('/auth/login', 'Auth::Login');
+*/
 
-$routes->group('', ['filter' => 'AuthCheck'], function($routes){
-    $routes->get('/dashboard', 'Dashboard::Index');
-    $routes->get('/configuration', 'Configuration::Index');
-    $routes->post('/configuration/update', 'Configuration::Update');
-});
+
+service('auth')->routes($routes);
+
+$routes->get('/report', 'Dashboard::Index', ['filter' => 'AuthCheck']);
+$routes->get('/delete', 'Dashboard::delete', ['filter' => 'AuthCheck']);
+$routes->get('/configuration', 'Configuration::Index', ['filter' => 'AuthCheck']);
+$routes->post('/configuration/update', 'Configuration::Update', ['filter' => 'AuthCheck']);
+$routes->get('/content-editor', 'ContentEditor::Index', ['filter' => 'AuthCheck']);
 
 $routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes){
 
-    $routes->post("outline", "ApiController::outline");
-    $routes->post("topics", "ApiController::topics");
-    $routes->post("section", "ApiController::section");
-    $routes->post("generator", "ApiController::openAIPrompt");
+    $routes->match(["get", "post"], "content", "ApiController::openAIPrompt");
     $routes->post("search", "ApiController::searchResults");
+    $routes->get("progress", "ApiController::reportProgress");
     $routes->get("locations", "ApiController::fetchLocations");
     $routes->get("serp", "ApiController::serpAPIAccountInfo");
     $routes->get("extractor", "ApiController::fetchKeywordExtractor");

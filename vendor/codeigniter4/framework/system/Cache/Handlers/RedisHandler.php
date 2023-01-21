@@ -12,6 +12,7 @@
 namespace CodeIgniter\Cache\Handlers;
 
 use CodeIgniter\Exceptions\CriticalError;
+use CodeIgniter\I18n\Time;
 use Config\Cache;
 use Redis;
 use RedisException;
@@ -154,7 +155,7 @@ class RedisHandler extends BaseHandler
         }
 
         if ($ttl) {
-            $this->redis->expireAt($key, time() + $ttl);
+            $this->redis->expireAt($key, Time::now()->getTimestamp() + $ttl);
         }
 
         return true;
@@ -200,7 +201,7 @@ class RedisHandler extends BaseHandler
     {
         $key = static::validateKey($key, $this->prefix);
 
-        return $this->redis->hIncrBy($key, 'data', $offset);
+        return $this->redis->hIncrBy($key, '__ci_value', $offset);
     }
 
     /**
@@ -208,9 +209,7 @@ class RedisHandler extends BaseHandler
      */
     public function decrement(string $key, int $offset = 1)
     {
-        $key = static::validateKey($key, $this->prefix);
-
-        return $this->redis->hIncrBy($key, 'data', -$offset);
+        return $this->increment($key, -$offset);
     }
 
     /**
@@ -238,11 +237,11 @@ class RedisHandler extends BaseHandler
         $value = $this->get($key);
 
         if ($value !== null) {
-            $time = time();
+            $time = Time::now()->getTimestamp();
             $ttl  = $this->redis->ttl($key);
 
             return [
-                'expire' => $ttl > 0 ? time() + $ttl : null,
+                'expire' => $ttl > 0 ? $time + $ttl : null,
                 'mtime'  => $time,
                 'data'   => $value,
             ];

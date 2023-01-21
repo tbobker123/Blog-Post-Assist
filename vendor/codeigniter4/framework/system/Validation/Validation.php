@@ -11,6 +11,7 @@
 
 namespace CodeIgniter\Validation;
 
+use Closure;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\Validation\Exceptions\ValidationException;
@@ -108,12 +109,6 @@ class Validation implements ValidationInterface
      */
     public function run(?array $data = null, ?string $group = null, ?string $dbGroup = null): bool
     {
-        // If there are still validation errors for redirect_with_input request, remove them.
-        // See `getErrors()` method.
-        if (isset($_SESSION, $_SESSION['_ci_validation_errors'])) {
-            unset($_SESSION['_ci_validation_errors']);
-        }
-
         $data ??= $this->data;
 
         // i.e. is_unique
@@ -168,7 +163,7 @@ class Validation implements ValidationInterface
             if (strpos($field, '*') !== false) {
                 // Process multiple fields
                 foreach ($values as $dotField => $value) {
-                    $this->processRules($dotField, $setup['label'] ?? $field, $value, $rules, $data);
+                    $this->processRules($dotField, $setup['label'] ?? $field, $value, $rules, $data, $field);
                 }
             } else {
                 // Process single field
@@ -183,8 +178,8 @@ class Validation implements ValidationInterface
      * Runs the validation process, returning true or false
      * determining whether validation was successful or not.
      *
-     * @param mixed    $value
-     * @param string[] $errors
+     * @param array|bool|float|int|object|string|null $value
+     * @param string[]                                $errors
      */
     public function check($value, string $rule, array $errors = []): bool
     {
@@ -201,10 +196,17 @@ class Validation implements ValidationInterface
      *
      * @param array|string $value
      * @param array|null   $rules
-     * @param array        $data
+     * @param array|null   $data          The array of data to validate, with `DBGroup`.
+     * @param string|null  $originalField The original asterisk field name like "foo.*.bar".
      */
-    protected function processRules(string $field, ?string $label, $value, $rules = null, ?array $data = null): bool
-    {
+    protected function processRules(
+        string $field,
+        ?string $label,
+        $value,
+        $rules = null,
+        ?array $data = null,
+        ?string $originalField = null
+    ): bool {
         if ($data === null) {
             throw new InvalidArgumentException('You must supply the parameter: data.');
         }
@@ -276,7 +278,7 @@ class Validation implements ValidationInterface
             $rules = array_diff($rules, ['permit_empty']);
         }
 
-        foreach ($rules as $rule) {
+        foreach ($rules as $i => $rule) {
             $isCallable = is_callable($rule);
 
             $passed = false;
@@ -291,7 +293,9 @@ class Validation implements ValidationInterface
             $error = null;
 
             // If it's a callable, call and get out of here.
-            if ($isCallable) {
+            if ($this->isClosure($rule)) {
+                $passed = $rule($value, $data, $error, $field);
+            } elseif ($isCallable) {
                 $passed = $param === false ? $rule($value) : $rule($value, $param, $data);
             } else {
                 $found = false;
@@ -305,7 +309,7 @@ class Validation implements ValidationInterface
                     $found  = true;
                     $passed = $param === false
                         ? $set->{$rule}($value, $error)
-                        : $set->{$rule}($value, $param, $data, $error);
+                        : $set->{$rule}($value, $param, $data, $error, $field);
 
                     break;
                 }
@@ -321,21 +325,59 @@ class Validation implements ValidationInterface
             if ($passed === false) {
                 // if the $value is an array, convert it to as string representation
                 if (is_array($value)) {
-                    $value = '[' . implode(', ', $value) . ']';
+                    $value = $this->isStringList($value)
+                        ? '[' . implode(', ', $value) . ']'
+                        : json_encode($value);
                 } elseif (is_object($value)) {
                     $value = json_encode($value);
                 }
 
                 $param = ($param === false) ? '' : $param;
 
+                // @phpstan-ignore-next-line $error may be set by rule methods.
                 $this->errors[$field] = $error ?? $this->getErrorMessage(
-                    $rule,
+                    $this->isClosure($rule) ? $i : $rule,
                     $field,
                     $label,
                     $param,
-                    (string) $value
+                    (string) $value,
+                    $originalField
                 );
 
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Closure|string $rule
+     */
+    private function isClosure($rule): bool
+    {
+        return $rule instanceof Closure;
+    }
+
+    /**
+     * Is the array a string list `list<string>`?
+     */
+    private function isStringList(array $array): bool
+    {
+        $expectedKey = 0;
+
+        foreach ($array as $key => $val) {
+            // Note: also covers PHP array key conversion, e.g. '5' and 5.1 both become 5
+            if (! is_int($key)) {
+                return false;
+            }
+
+            if ($key !== $expectedKey) {
+                return false;
+            }
+            $expectedKey++;
+
+            if (! is_string($val)) {
                 return false;
             }
         }
@@ -375,14 +417,14 @@ class Validation implements ValidationInterface
      *
      *    [
      *        'rule' => 'message',
-     *        'rule' => 'message'
+     *        'rule' => 'message',
      *    ]
      *
      * @param array|string $rules
      *
-     * @throws TypeError
-     *
      * @return $this
+     *
+     * @throws TypeError
      */
     public function setRule(string $field, ?string $label, $rules, array $errors = [])
     {
@@ -469,9 +511,9 @@ class Validation implements ValidationInterface
      *
      * @param string $group Group.
      *
-     * @throws InvalidArgumentException If group not found.
-     *
      * @return string[] Rule group.
+     *
+     * @throws ValidationException If group not found.
      */
     public function getRuleGroup(string $group): array
     {
@@ -491,7 +533,7 @@ class Validation implements ValidationInterface
      *
      * @param string $group Group.
      *
-     * @throws InvalidArgumentException If group not found.
+     * @throws ValidationException If group not found.
      */
     public function setRuleGroup(string $group)
     {
@@ -506,6 +548,8 @@ class Validation implements ValidationInterface
 
     /**
      * Returns the rendered HTML of the errors as defined in $template.
+     *
+     * You can also use validation_list_errors() in Form helper.
      */
     public function listErrors(string $template = 'list'): string
     {
@@ -520,6 +564,8 @@ class Validation implements ValidationInterface
 
     /**
      * Displays a single error in formatted HTML as defined in the $template view.
+     *
+     * You can also use validation_show_error() in Form helper.
      */
     public function showError(string $field, string $template = 'single'): string
     {
@@ -559,12 +605,14 @@ class Validation implements ValidationInterface
      * same format used with setRules(). Additionally, check
      * for {group}_errors for an array of custom error messages.
      *
-     * @return array|ValidationException|null
+     * @return array
+     *
+     * @throws ValidationException
      */
     public function loadRuleGroup(?string $group = null)
     {
         if (empty($group)) {
-            return null;
+            return [];
         }
 
         if (! isset($this->config->{$group})) {
@@ -681,14 +729,7 @@ class Validation implements ValidationInterface
      */
     public function getErrors(): array
     {
-        // If we already have errors, we'll use those.
-        // If we don't, check the session to see if any were
-        // passed along from a redirect_with_input request.
-        if (empty($this->errors) && ! is_cli() && isset($_SESSION, $_SESSION['_ci_validation_errors'])) {
-            $this->errors = unserialize($_SESSION['_ci_validation_errors']);
-        }
-
-        return $this->errors ?? [];
+        return $this->errors;
     }
 
     /**
@@ -706,13 +747,21 @@ class Validation implements ValidationInterface
      *
      * @param string|null $value The value that caused the validation to fail.
      */
-    protected function getErrorMessage(string $rule, string $field, ?string $label = null, ?string $param = null, ?string $value = null): string
-    {
+    protected function getErrorMessage(
+        string $rule,
+        string $field,
+        ?string $label = null,
+        ?string $param = null,
+        ?string $value = null,
+        ?string $originalField = null
+    ): string {
         $param ??= '';
 
         // Check if custom message has been defined by user
         if (isset($this->customErrors[$field][$rule])) {
             $message = lang($this->customErrors[$field][$rule]);
+        } elseif (null !== $originalField && isset($this->customErrors[$originalField][$rule])) {
+            $message = lang($this->customErrors[$originalField][$rule]);
         } else {
             // Try to grab a localized version of the message...
             // lang() will return the rule name back if not found,

@@ -4,19 +4,40 @@ function url_domain(data)
     a.href = data;
     return a.hostname;
 }
+
 function arrayToLists(arr)
 {
     try{
-        let elm = "<ul>";
+        let elm = "<div>";
+        let bg = "#ffffff";
         arr.forEach( item => {
-            elm += `<li>${item}</li>`;
+            let str = item.split("-");
+            let heading_margin;
+            if(str[0].indexOf("h2") != -1){
+                heading_margin = "3";
+            } else if(str[0].indexOf("h3") != -1){
+                heading_margin = "4";
+            } else if(str[0].indexOf("h4") != -1){
+                heading_margin = "5";
+            } else if(str[0].indexOf("h1") != -1){
+                heading_margin = "0";
+            } else {
+                heading_margin = "0";
+            }
+            if(bg == "#ffffff") bg = "#f5fbfb"; else bg = "#f5fbfb";
+            elm += `<div class="ms-${heading_margin} p-2 d-flex border" style="font-size: 16px;background-color:${bg}">`+
+            `<div class="text-primary fw-bold p-1">${str[0].toUpperCase().trim()}</div>`+
+            `<div class="fw-bold p-1">${str[1]}</div>`+
+            `</div>`;
         });
-        elm += "</ul>";
+        elm += "</div>";
         return elm;
     } catch(e) {
-        return "";
+        return "You just encountered an unexpected error.";
     } 
 }
+
+
 
 function loadGoogleCountries()
 {
@@ -33,20 +54,6 @@ function loadGoogleCountries()
 }
 
 
-function topTabs(evt, cityName) 
-{
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(cityName).style.display = "block";
-    evt.className += " active";
-}
 
 if(typeof tinymce != "undefined")
 {
@@ -117,17 +124,6 @@ function compareTextWithExtractedKeywords(text)
     });
 }
 
-
-function copyDivToClipboard() 
-{
-    var range = document.createRange();
-    range.selectNode(document.getElementById("export-post"));
-    window.getSelection().removeAllRanges(); // clear current selection
-    window.getSelection().addRange(range); // to select text
-    document.execCommand("copy");
-    window.getSelection().removeAllRanges();// to deselect
-}
-
 function updateCSRFHash(hash)
 {
     $("#csrf_token_name").val(hash);
@@ -141,9 +137,8 @@ function updateBlogPostId(id){
     }
 }
 
-function fetchSERPUsageANDSavedReports(query_id)
+function fetchSERPUsageANDSavedReports(query_id='')
 {
-
     fetch('/api/serp', {
     method: 'GET',
     headers: {
@@ -162,124 +157,36 @@ function fetchSERPUsageANDSavedReports(query_id)
             Plan Usage:${data.usage}</div>`
         );
     });
-
-    $("#saved-reports").empty();
-    $("#saved-reports").append(`<option>select SERP report</option>`);
-
-    fetch('/api/reports', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }})
-        .then((res) => { 
-            return res.json(); 
-        })
-        .then(data => {
-            data.map(d => {
-                let query = d.query.replace(/\+/g, ' ');
-                let isSelected = (d.id == query_id) ? 'selected' : '';
-                $("#saved-reports").append(
-                    `<option value="${d.id}" ${isSelected}>${query} (${d.wordcount})</option>`
-                );
-            })
-        });
 }
 
 
-function parseResults(result)
-{
-    const results = result;
+function getReportProgress(){
+    let request;
 
-    /**
-     * Store blog posts drafts in browser storage
-     */
-     const blogposts = results.blogposts; console.log(blogposts);
-     localStorage.setItem('blogs', JSON.stringify(blogposts));
-
-    let titles = [];
-
-    $("#recommended-word-length").html(`<span class="h2">Recommended Post length ${Math.round(results.wordcount)}</span>`).fadeIn();
-
-    /**
-     * Show SERP results and top results
-     */
-    for(let c=0;c<results.results.length;c++)
-    {
-        let item = results.results[c];
-        if(item.wordcount > (results.wordcount * 1.2)){
-            
-            $("#top-title").append(`<tr>`+
-                `<td scope="row">${item.position}</td>`+
-                `<td><a target="_blank" href="${item.link}" target="_blank">${item.title}</a> </td>`+
-                `<td>${item.wordcount}</td>`+
-                `</tr>`);
-        }
-
-        $("#results").append(`<tr>`+
-        `<td scope="row">${item.title}</td>`+
-        `<td><a href="${item.link}" target="_blank">${url_domain(item.link)}</a></td>`+
-        `<td>${item.snippet}</td><td>${item.wordcount}</td>`+
-        `<td><div><div><strong>h1:</strong> ${arrayToLists(item.headings.h1)}</div><div><strong>h2:</strong> ${arrayToLists(item.headings.h2)}</div></div></td>`+
-        `</tr>`);
-        
+    const makeApiCall = () => {
+        fetch('/api/progress', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }})
+            .then((res) => { 
+               return res.json();
+            }).then(data => {
+            console.log(data.progress);
+            if(data.progress == "We are saving your report."){
+                clearTimeout(request);
+            }
+        });
+        request = setTimeout(makeApiCall(), 1000);
     }
-
-    /**
-     * Show related questions
-     */
-    if(results.relatedquestions[0] == "No related questions"){
-        $("#related-questions").append(`<tr><td colspan="3">No related questions</td></tr>`);
-    } else {
-        for(let d=0;d<results.relatedquestions.length;d++){
-            let question = results.relatedquestions[d];
-            $("#related-questions").append(`<tr>`+
-                `<td scope="row">${question.question}</td>`+
-                `<td><a href="${question.link}" target="_blank"> ${url_domain(question.link)}</a></td>`+
-                `<td>${question.title}</td>`+
-            `</tr>`);
-        }  
-    }
-
-    /**
-     * Print out the related keyword words/phrases
-     */
-    for(let kw=0;kw<results.keywords.length;kw++){
-        let keyword = results.keywords[kw];
-        $(".extracted-keywords").append(`
-            <div class="h5 float-left d-inline ps-1 pe-1 m-1"><u>${keyword.keyword}</u></div>
-        `);
-    }
-
-    /**
-     * Populate Blog post drafts
-     */
-    $("#blog-post-drafts").empty();
-    if(Array.isArray(blogposts)){
-        $("#blog-post-drafts-option").text("---Select blog post draft ---");
-        blogposts.map(d => {
-            $("#blog-post-drafts").append(
-                `<option value="${d.id ?? ''}">${d.title ?? 'No title found for draft'}</option>`
-            );
-        })
-    } else {
-        $("#blog-post-drafts").append(
-            `<option value="">No drafts found for keyword</option>`
-        );
-    }
-
-
 }
 
 function fetchSERPResults(query){
+
+    getReportProgress();
                     
-    $(".hide-until-results").hide();
-    $("#results").empty();
-    $("#recommended-word-length").empty();
-    $("#related-questions").empty();
-    $(".extracted-keywords").empty();
-    $("#top-title").empty();
-    $("#loading").html("loading...");
+    $("#searchbtn").text("loading...");
 
     const query_id = query.query_id ?? null;
 
@@ -293,16 +200,26 @@ function fetchSERPResults(query){
     }).then(response => {
         return response.json();
     }).then(data => {
-        parseResults(data);
-        $("#loading").html("");
-        fetchSERPUsageANDSavedReports(query_id);
-        $(".hide-until-results").show();
-        $("#loading").empty();
+        if(data.error){
+            alert("An error was experienced. Please try again.");
+        } else {
+
+            const id = data.id;
+            const wordcount = Math.round(data.wordcount);
+            const keyword = data.keyword.replaceAll("+", " ");
+    
+            $("#list-reports-table").find('tbody').append(`<tr>`+
+            `<td><a class="fs-5" href="/report?reportid=${id.toString()}">${keyword.toString()}</a></td>`+
+            `<td>${wordcount.toString()}</td>`+
+            `<td><a type="button" class="delete-report-btn d-inline input-group-text btn-danger" href="/delete?reportid=${id.toString()}">Delete</a>`+
+            `<a type="button" class="editor-report-btn d-inline input-group-text btn-warning" href="/content-editor?reportid=${id.toString()}">Editor</a></td>`+
+            `</tr>`);
+        }
+        $("#searchbtn").text("Search");
         updateCSRFHash(data.csrf_hash);
     }).catch((error) => {
-        console.log(error);
-        alert(error);
-        $("#loading").empty();
+        console.log("error: " + error);
+        $("#searchbtn").text("Search");
       });;
 }
 
@@ -320,6 +237,21 @@ $(document).ready(function() {
     fetchSERPUsageANDSavedReports();
     loadGoogleCountries();
 
+    $("#searchbtn").on('click', (e) => {
+        if($("#searchterm").val() !== ""){   
+            const postData = {query: $.trim($("#searchterm").val()), location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};  
+            fetchSERPResults(postData)
+        } else {
+            alert("Enter a search term");
+        }
+    });
+
+    $(".delete-report-btn").on("click", function(event){
+        if (confirm("Are you sure you want to delete this report?") == false) {
+            event.preventDefault()
+        }
+    })
+
     $("#generate-blog-post-button").click(function() {
         
         const ID = $("#generate-content-type").val();
@@ -327,7 +259,7 @@ $(document).ready(function() {
         if(ID == "select"){
             alert("Select a type");
             return;
-        }
+        }   
     
         const endpoint = ID.split("-")[2];
     
@@ -429,65 +361,11 @@ $(document).ready(function() {
             updateCSRFHash(data.csrf_hash);
             alert(data.status);
             console.log(data);
-            window.location.reload();
         });
 
     });
 
-    $("#deletereport").on('click', e => {
-        const id = $("#saved-reports option:selected").val();
 
-        if(id == 'select report'){
-            alert("select a report");
-            return;
-        }
-
-        fetch('/api/deletereport', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({reportid: id, csrf_token_name: $("#csrf_token_name").val()})
-            })
-            .then((res) => { return res.json(); })
-            .then(data => {
-                alert(data.status.toString());
-                $('#saved-reports option:selected').remove();
-                updateCSRFHash(data.csrf_hash);
-            });
-    })
-
-    $("#loadreport").on('click', (e) => {
-
-        const selectedReport = $("#saved-reports option:selected");
-        const query_id = $("#saved-reports option:selected").val();
-
-        if(selectedReport.val() == 'select report'){
-            alert("select a report");
-            return;
-        }
-        
-        if(query_id != ""){
-            const postData = {query_id: query_id, location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};  
-            fetchSERPResults(postData)
-        } else {
-            alert("Error: report not found");
-        }
-        selectedReport.attr('selected','selected');
-        $("#blog-post-id").val('');
-    });
-
-    $("#searchbtn").on('click', (e) => {
-
-        if($("#searchterm").val() !== ""){   
-            const postData = {query: $.trim($("#searchterm").val()), location: $("#search-locations-select").val(), csrf_token_name: $("#csrf_token_name").val()};  
-            fetchSERPResults(postData)
-        } else {
-            alert("Enter a search term");
-        }
-    
-    });
 
     $("#login-submit").on("click", function(){
         
@@ -525,6 +403,5 @@ $(document).ready(function() {
         topTabs(this, tab);
     })
 
-    topTabs(document.getElementsByClassName("firstload")[0], 'serp-analysis');
 
   });

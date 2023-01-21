@@ -46,3 +46,47 @@ Events::on('pre_system', static function () {
         Services::toolbar()->respond();
     }
 });
+
+Events::on('register', static function($user) {
+
+    $db = \Config\Database::connect();
+
+
+    /***
+     * Add entries to api keys table
+     */
+    $builder1 = $db->table('apikeys');
+
+    $api_names = [
+        'openai',
+        'tinymce',
+        'rapidapi',
+        'serpapi',
+    ];
+
+    foreach($api_names as $name){
+        $builder1->insert([
+            'name' => $name,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    /**
+     * Add entry for OpenAI prompts
+     */
+    
+    $builder2 = $db->table('configuration');
+
+    $prompts = [
+        'user_id' => $user->id,
+        'openAI_topic' => 'Create 15 blog topics or blog post titles about',
+        'openAI_outline' => 'Create a detailed, interesting and informative blog post outline about',
+        'openAI_section' => 'write a detailed blog post section about',
+        'serp' => 30,
+    ];
+
+    $builder2->insert($prompts);
+
+
+
+});
