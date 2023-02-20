@@ -1,11 +1,12 @@
 # Blog Post Creator - Application Starter
 
-<img width="1120" alt="Screenshot 2022-10-03 at 10 59 59" src="https://user-images.githubusercontent.com/110484739/193558393-ffc8d78b-bae9-43f6-9d65-98005dc6aecc.png">
-<img width="1108" alt="Screenshot 2022-10-03 at 11 02 45" src="https://user-images.githubusercontent.com/110484739/193558400-f20f9a9e-8af0-45f9-b2ca-5757042986b8.png">
-<img width="1107" alt="Screenshot 2022-10-03 at 11 04 49" src="https://user-images.githubusercontent.com/110484739/193558403-c0e98dd8-ef43-4885-b396-e550fcaf99ec.png">
-<img width="1079" alt="Screenshot 2022-10-03 at 11 07 34" src="https://user-images.githubusercontent.com/110484739/193558405-ad43cbb9-cea0-4234-a389-c1f863d88f56.png">
+
+<img width="1204" alt="Screenshot 2023-01-22 at 20 25 32" src="https://user-images.githubusercontent.com/110484739/213938700-1aa84a41-b875-4d47-8b99-fcb9648fad2f.png">
 
 
+<img width="1234" alt="Screenshot 2023-01-22 at 20 28 15" src="https://user-images.githubusercontent.com/110484739/213938750-cc672ef9-f20b-4618-8cf3-5c12620d45a0.png">
+
+<img width="1259" alt="Screenshot 2023-01-22 at 20 36 31" src="https://user-images.githubusercontent.com/110484739/213939102-9a4be4ce-a4b8-48d7-9fdc-d3d4325ff0c6.png">
 
 
 ## What is Blog Post Creator?
@@ -29,11 +30,12 @@ First you need to sign up for the API services this script uses: [SerpAPI](https
 
 Clone the project ```git clone https://github.com/domaingenerator/blog-post-creator.git``` or simply download the Zip file from [Github](https://github.com/domaingenerator/blog-post-creator/). 
 
-All packages have been installed via composer and the vendor directory is already uploaded to this repository so there is no need to run ```composer install```.
+All packages have been installed via composer so run ```composer install```.
 
 1. Rename the ```.env_example``` file to ```.env``` and open it up in your favourite editor and scroll to the end of the file. Update the variables with your API keys. 
 
 2. Next open file ```app > config > App.php ``` and update the ```public $baseURL``` variable to reflect either the domain you will host the script or ```localhost:port-number```. If you are running ```php spark serve``` locally the port is usually ```http://localhost:8080```
+3. Create a database and import the blog-post-assist.sql
 
 If you are self hosting this with a domain, make sure you set the document root to the ```public``` folder of this script.
 
