@@ -356,7 +356,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $CSRFTokenName = 'csrf_test_name';
+    public $CSRFTokenName = 'csrf_token_name';
 
     /**
      * --------------------------------------------------------------------------

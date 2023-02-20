@@ -26,7 +26,7 @@ class Security extends BaseConfig
      *
      * @var bool
      */
-    public $tokenRandomize = false;
+    public $tokenRandomize = true;
 
     /**
      * --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class Security extends BaseConfig
      *
      * @var string
      */
-    public $tokenName = 'csrf_test_name';
+    public $tokenName = 'csrf_token_name';
 
     /**
      * --------------------------------------------------------------------------
@@ -94,7 +94,7 @@ class Security extends BaseConfig
      *
      * @var bool
      */
-    public $redirect = true;
+    public $redirect = false;
 
     /**
      * --------------------------------------------------------------------------

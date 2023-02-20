@@ -53,8 +53,7 @@ $routes->get('/configuration', 'Configuration::Index', ['filter' => 'AuthCheck']
 $routes->post('/configuration/update', 'Configuration::Update', ['filter' => 'AuthCheck']);
 $routes->get('/content-editor', 'ContentEditor::Index', ['filter' => 'AuthCheck']);
 
-$routes->group("api", ["namespace" => "App\Controllers\Api"] , function($routes){
-
+$routes->group("api", ["namespace" => "App\Controllers\Api", 'filter' => 'AuthCheck'] , function($routes){
     $routes->match(["get", "post"], "content", "ApiController::openAIPrompt");
     $routes->post("search", "ApiController::searchResults");
     $routes->get("progress", "ApiController::reportProgress");

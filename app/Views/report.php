@@ -135,13 +135,19 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach($related_questions as $question) : ?>
+                                        <?php if(count($related_questions) > 1) : ?>
+                                            <?php foreach($related_questions as $question) : ?>
+                                                <tr>
+                                                    <td><?=$question->question;?></td>
+                                                    <td><?=parse_url($question->link)['host'];?></td>
+                                                    <td><a href="<?=$question->link;?>" target="_blank"><?=$question->title;?></a></td>
+                                                </tr>
+                                            <?php endforeach; ?>                                          
+                                        <?php else : ?>
                                             <tr>
-                                                <td><?=$question->question;?></td>
-                                                <td><?=parse_url($question->link)['host'];?></td>
-                                                <td><a href="<?=$question->link;?>" target="_blank"><?=$question->title;?></a></td>
-                                            </tr>
-                                        <?php endforeach; ?>                                       
+                                                <td>No related questions</td>
+                                            </tr>  
+                                        <?php endif; ?>                                      
                                     </tbody>  
                                 </table>  
                             </div>
@@ -161,7 +167,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($serp_report_php as $result): $time = time(); ?>
+                                        <?php foreach ($serp_report_php as $result): $random_id = rand(); ?>
                                         <tr>
                                             <td><?=$result->position;?></td>
                                             <td><?=$result->title;?></td>
@@ -169,10 +175,10 @@
                                             <td><?=$result->snippet;?></td>
                                             <td><?=$result->wordcount;?></td>
                                             <td>
-                                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#s<?=$time;?>">
+                                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#s<?=$random_id;?>">
                                                     Structure
                                                 </button>
-                                                <div class="modal fade modal-dialog-scrollable" id="s<?=$time;?>">
+                                                <div class="modal fade modal-dialog-scrollable" id="s<?=$random_id;?>">
                                                     <div class="modal-dialog modal-lg">
                                                         <div class="modal-content">
                                                             <div class="modal-header">

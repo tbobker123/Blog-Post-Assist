@@ -83,7 +83,9 @@ class Dashboard extends BaseController
                             ];
                         }
                     }
-                    $data['related_questions'] = json_decode($fetchSavedSerpReport['results'])->relatedquestions;
+                    $data['related_questions'] = json_decode($fetchSavedSerpReport['results'])->relatedquestions ?? null;
+
+
                     $data['highlighted_keywords'] = [];
                     foreach($data['serp_report_php'] as $highlighted){
                         if(isset($highlighted->related_results)){

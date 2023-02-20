@@ -184,7 +184,7 @@ function getReportProgress(){
 
 function fetchSERPResults(query){
 
-    getReportProgress();
+    //getReportProgress();
                     
     $("#searchbtn").text("loading...");
 
@@ -200,6 +200,7 @@ function fetchSERPResults(query){
     }).then(response => {
         return response.json();
     }).then(data => {
+
         if(data.error){
             alert("An error was experienced. Please try again.");
         } else {
@@ -217,6 +218,7 @@ function fetchSERPResults(query){
         }
         $("#searchbtn").text("Search");
         updateCSRFHash(data.csrf_hash);
+        
     }).catch((error) => {
         console.log("error: " + error);
         $("#searchbtn").text("Search");

@@ -69,8 +69,9 @@
 
                     <div class="m-4 text-center">
                         <input type="hidden" value="" data-keyword="" id="blog-post-id">
-                        <button class="btn btn-success w-25" id="save-blog-post-draft">Save</button>
-                        <button class="btn btn-danger w-25" id="save-blog-post-draft">Delete</button>                    </div>
+                        <!--<button class="btn btn-success w-25" id="save-blog-post-draft">Save</button>
+                        <button class="btn btn-danger w-25" id="save-blog-post-draft">Delete</button>-->
+                    </div>
                     </div>
                 </div>
 

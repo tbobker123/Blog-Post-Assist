@@ -100,7 +100,7 @@ class ApiController extends ResourceController
                 case "outline":
                     $openAIConfig = json_decode($open_ai->complete([
                         'engine' => $engine,
-                        'prompt' => "create an interesting and detailed blog post, capitalising the headings with at least 10 headings thats 500 words long about $prompt",
+                        'prompt' => "create an interesting and and fun blog post thats at least 500 words long with at least 5 headings thats about $prompt and includes $prompt in the first paragraph",
                         'temperature' => 0.7,
                         'max_tokens' => 4000,
                         'presence_penalty' => 0.6,
@@ -128,7 +128,7 @@ class ApiController extends ResourceController
                 case "title":
                     $openAIConfig = json_decode($open_ai->complete([
                         'engine' => $engine,
-                        'prompt' => "creata a really catchy blog post title thats 155 characters long in active voice about " . $prompt,
+                        'prompt' => "creata a really catchy blog post title that includes the phrase $prompt and is in an active voice about $prompt and is no longer than 155 characters",
                         'temperature' => 0.95,
                         'max_tokens' => 155,
                         'presence_penalty' => 0,

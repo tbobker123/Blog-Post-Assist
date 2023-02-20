@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\Settings;
 use App\Models\APIkeys;
 use Codeigniter\Shield\Models\UserModel;
+use PhpParser\Node\Stmt\TryCatch;
 
 class Configuration extends BaseController
 {
@@ -43,59 +44,80 @@ class Configuration extends BaseController
 
 		if( $this->request->getMethod() == "post" AND $this->request->getPost('update_configuration') ){
 
-			/**
-			 * Settings
-			 */
 			
-			$outline = $this->request->getPost('outline');
-			$topic = $this->request->getPost('topic');
-			$serp = $this->request->getPost('serp');
-			$section = $this->request->getPost('section');
+			
+			try {
+
+								/**
+				 * Settings
+				 */
+				
+				$outline = $this->request->getPost('outline');
+				$topic = $this->request->getPost('topic');
+				$serp = $this->request->getPost('serp');
+				$section = $this->request->getPost('section');
 
 
-			$settings_update = [
-				'openAI_topic'=> $topic,
-				'openAI_outline' => $outline,
-				'openAI_section' => $section,
-				'serp' => $serp,
-			];
+				$settings_update = [
+					'openAI_topic'=> $topic,
+					'openAI_outline' => $outline,
+					'openAI_section' => $section,
+					'serp' => $serp,
+				];
 
-			$this->settings->update(0, $settings_update);
+				$this->settings->update(0, $settings_update);
 
-			/**
-			 * API Keys
-			 */
+				/**
+				 * API Keys
+				 */
 
-			$openai_key = $this->request->getPost('openai-key');
-			$openai_id = $this->request->getPost('openai-id');
-			$rapidapi_key = $this->request->getPost('rapidapi-key');
-			$rapidapi_id = $this->request->getPost('rapidapi-id');
-			$serpapi_key = $this->request->getPost('serpapi-key');
-			$serpapi_id = $this->request->getPost('serpapi-id');
+				$openai_key = $this->request->getPost('openai-key');
+				$openai_id = $this->request->getPost('openai-id');
+				$rapidapi_key = $this->request->getPost('rapidapi-key');
+				$rapidapi_id = $this->request->getPost('rapidapi-id');
+				$serpapi_key = $this->request->getPost('serpapi-key');
+				$serpapi_id = $this->request->getPost('serpapi-id');
+				$tinymce_key = $this->request->getPost('tinymce-key');
+				$tinymce_id = $this->request->getPost('tinymce-id');
 
-			if(isset($openai_key) && !empty($openai_key)){
-				$this->apikeys->update($openai_id, [
-					'key' => $openai_key
-				]);
+				if(isset($openai_key) && !empty($openai_key)){
+					$this->apikeys->update($openai_id, [
+						'key' => $openai_key
+					]);
+				}
+
+
+				if(isset($rapidapi_key) && !empty($rapidapi_key)){
+					$this->apikeys->update($rapidapi_id, [
+						'key' => $rapidapi_key
+					]);
+				}
+
+
+				if(isset($serpapi_key) && !empty($serpapi_key)){
+					$this->apikeys->update($serpapi_id, [
+						'key' => $serpapi_key
+					]);
+				}
+
+
+				if(isset($tinymce_key) && !empty($tinymce_key)){
+					$this->apikeys->update($tinymce_id, [
+						'key' => $tinymce_key
+					]);
+				}
+
+				session()->setFlashdata('config', 'Successfully Updated');
+
+				return redirect()->to('/configuration?updated=success');
+
+			}
+			
+			//catch exception
+			catch(\Exception $e) {
+				echo 'Message: ' .$e->getMessage();
 			}
 
-
-			if(isset($rapidapi_key) && !empty($rapidapi_key)){
-				$this->apikeys->update($rapidapi_id, [
-					'key' => $rapidapi_key
-				]);
-			}
-
-
-			if(isset($serpapi_key) && !empty($serpapi_key)){
-				$this->apikeys->update($serpapi_id, [
-					'key' => $serpapi_key
-				]);
-			}
-
-			session()->setFlashdata('config', 'Successfully Updated');
-
-			return redirect()->to('/configuration?updated=success');
 
 		}
 	}

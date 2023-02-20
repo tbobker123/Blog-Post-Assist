@@ -50,6 +50,7 @@
             </div>
                                
         </form>
+        <?=session()->getFlashdata('error');?>
         </div> 
 
 
